@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>うちの子カルテ</title>
   <meta name="description" content="猫・犬の小さな変化を1分で残し、動物病院で落ち着いて説明するためのローカル保存カルテ。">
+  <meta name="theme-color" content="#2F8F83">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="うちの子カルテ">
+  <meta property="og:description" content="猫・犬の毎日の変化を端末内に保存し、過去2週間の受診用レポートにまとめる静的Webアプリ。">
+  <meta property="og:site_name" content="うちの子カルテ">
+  <!-- TODO Codex生成画像: OGP画像 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232F8F83'/%3E%3Cpath d='M18 42c0-8 6-14 14-14s14 6 14 14v2H18v-2Z' fill='white'/%3E%3Ccircle cx='23' cy='22' r='5' fill='white'/%3E%3Ccircle cx='41' cy='22' r='5' fill='white'/%3E%3Ccircle cx='32' cy='18' r='6' fill='white'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -108,7 +115,7 @@
           </div>
 
           <p id="save-status" class="status-text" role="status">未保存です。</p>
-          <button type="submit" class="button primary full">保存する</button>
+          <button type="submit" class="button primary full" aria-describedby="save-status">保存する</button>
         </form>
       </section>
 
@@ -139,7 +146,7 @@
           <div id="report-preview" class="report-preview">
             <p class="empty-state">記録を保存すると、2週間サマリーが表示されます。</p>
           </div>
-          <button type="button" id="print-button" class="button print-button">印刷ビューを開く</button>
+          <button type="button" id="print-button" class="button print-button" aria-describedby="report-title">印刷ビューを開く</button>
         </div>
       </div>
     </section>
@@ -207,7 +214,7 @@
         <div class="danger-zone">
           <h3>データ管理</h3>
           <p class="muted">この端末のブラウザに保存されたデータだけを扱います。</p>
-          <button type="button" id="delete-data-button" class="button danger">この端末のデータを削除</button>
+          <button type="button" id="delete-data-button" class="button danger" aria-describedby="settings-title">この端末のデータを削除</button>
         </div>
       </div>
     </section>
