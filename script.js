@@ -309,7 +309,7 @@ function renderApp() {
   renderProfileForm();
   renderTodayMeta();
   renderChoiceState();
-  renderBasicCalendar();
+  renderCalendar();
   renderBasicReport();
 }
 
@@ -348,7 +348,7 @@ function renderChoiceState() {
   });
 }
 
-function renderBasicCalendar() {
+function renderCalendar() {
   clearElement(els.calendarGrid);
   const profile = getActiveProfile();
   if (!profile) {
@@ -356,33 +356,35 @@ function renderBasicCalendar() {
     renderDayDetail(null);
     return;
   }
-  recentDateKeys(14).forEach((dateKey) => {
-    const record = getDailyRecord(profile.id, dateKey);
+  const flaggedRecords = getFlaggedRecords(profile.id, 14, profile.baseline);
+  flaggedRecords.forEach(({ dateKey, record, flags }) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `calendar-day ${record ? "has-record" : "is-empty"}`;
+    button.className = `calendar-day ${getDayStatusClass(record, flags)}`;
     button.dataset.date = dateKey;
+    button.setAttribute("aria-label", `${formatDateLabel(dateKey)} ${getStatusText(record, flags)}`);
     button.addEventListener("click", () => {
       state.selectedDate = dateKey;
-      renderBasicCalendar();
-      renderDayDetail(getDailyRecord(profile.id, dateKey));
+      renderCalendar();
+      renderDayDetail(record, flags);
     });
     const date = document.createElement("span");
     date.className = "calendar-date";
     date.textContent = formatDateLabel(dateKey);
     const status = document.createElement("span");
     status.className = "calendar-status";
-    status.textContent = record ? "記録済み" : "記録なし";
+    status.textContent = getStatusText(record, flags);
     button.append(date, status);
     if (dateKey === state.selectedDate) {
       button.setAttribute("aria-current", "date");
     }
     els.calendarGrid.append(button);
   });
-  renderDayDetail(getDailyRecord(profile.id, state.selectedDate));
+  const selected = flaggedRecords.find((item) => item.dateKey === state.selectedDate);
+  renderDayDetail(selected?.record || null, selected?.flags || { level: "none", reasons: [] });
 }
 
-function renderDayDetail(record) {
+function renderDayDetail(record, flags = { level: "none", reasons: [] }) {
   clearElement(els.dayDetail);
   const heading = document.createElement("h3");
   heading.textContent = "日別詳細";
@@ -400,6 +402,20 @@ function renderDayDetail(record) {
   appendDefinition(list, "気になること", formatConcerns(record.concerns));
   appendDefinition(list, "メモ", record.memo || "なし");
   els.dayDetail.append(list);
+  if (flags.reasons.length > 0) {
+    const flagBox = document.createElement("div");
+    flagBox.className = `flag-box ${flags.level === "alert" ? "is-alert" : "is-caution"}`;
+    const label = document.createElement("strong");
+    label.textContent = flags.level === "alert" ? "いつもと違う" : "注意";
+    const reasonList = document.createElement("ul");
+    flags.reasons.forEach((reason) => {
+      const item = document.createElement("li");
+      item.textContent = reason;
+      reasonList.append(item);
+    });
+    flagBox.append(label, reasonList);
+    els.dayDetail.append(flagBox);
+  }
 }
 
 function renderBasicReport() {
@@ -437,6 +453,93 @@ function recentDateKeys(days) {
     keys.push(`${year}-${month}-${day}`);
   }
   return keys;
+}
+
+function getFlaggedRecords(petId, days, baseline) {
+  const keys = recentDateKeys(days);
+  const items = keys.map((dateKey) => ({
+    dateKey,
+    record: getDailyRecord(petId, dateKey),
+    flags: { level: "none", reasons: [] },
+  }));
+  items.forEach((item, index) => {
+    if (!item.record) return;
+    const previousRecords = items
+      .slice(0, index)
+      .map((previous) => previous.record)
+      .filter(Boolean);
+    item.flags = detectRecordFlags(item.record, previousRecords, baseline);
+  });
+  return items;
+}
+
+function detectRecordFlags(record, previousRecords, baseline = {}) {
+  const reasons = [];
+  const cautions = [];
+  const allRecords = [...previousRecords, record];
+  const previous = previousRecords.at(-1);
+  const lastTwo = allRecords.slice(-2);
+  const lastThree = allRecords.slice(-3);
+
+  if (record.meal === "half" || record.meal === "none") {
+    reasons.push(`食事が「${LABELS.meal[record.meal]}」です`);
+  }
+  if (lastTwo.length === 2 && lastTwo.every((item) => item.meal === "less")) {
+    reasons.push("食事が2日連続で少なめです");
+  }
+  if (baseline.meal && baseline.meal !== record.meal && record.meal === "less" && previous?.meal !== "less") {
+    cautions.push("普段の食事量より少なめです");
+  }
+
+  if (record.poop === "diarrhea" || record.poop === "none") {
+    reasons.push(`排便が「${LABELS.poop[record.poop]}」です`);
+  }
+  const poopShiftCount = lastThree.filter((item) => item.poop === "less" || item.poop === "more").length;
+  if (lastThree.length >= 2 && poopShiftCount >= 2) {
+    cautions.push("排便の少ない/多い日が直近3回中2回以上あります");
+  }
+
+  if (record.mood === "weak") {
+    reasons.push("気分が「ぐったり」です");
+  }
+  if (lastTwo.length === 2 && lastTwo.every((item) => item.mood === "sleepy" || item.mood === "grumpy")) {
+    cautions.push("眠い/不機嫌が2日連続しています");
+  }
+
+  const alertConcerns = ["vomit", "cough", "limp", "pee_issue"];
+  record.concerns
+    .filter((value) => alertConcerns.includes(value))
+    .forEach((value) => reasons.push(`気になることに「${LABELS.concerns[value]}」があります`));
+  const drinksMoreCount = allRecords.filter((item) => item.concerns.includes("drinks_more")).length;
+  if (record.concerns.includes("drinks_more") && drinksMoreCount >= 2) {
+    reasons.push("水をよく飲む記録が2日以上あります");
+  }
+
+  if (/(血|痛|震え|呼吸|ぐったり)/.test(record.memo || "")) {
+    cautions.push("メモに受診時確認したい言葉があります");
+  }
+
+  if (reasons.length > 0) {
+    return { level: "alert", reasons: [...reasons, ...cautions] };
+  }
+  if (cautions.length > 0) {
+    return { level: "caution", reasons: cautions };
+  }
+  return { level: "normal", reasons: [] };
+}
+
+function getDayStatusClass(record, flags) {
+  if (!record) return "is-empty";
+  if (flags.level === "alert") return "has-alert";
+  if (flags.level === "caution") return "has-caution";
+  return "has-record";
+}
+
+function getStatusText(record, flags) {
+  if (!record) return "記録なし";
+  if (flags.level === "alert") return "いつもと違う";
+  if (flags.level === "caution") return "注意";
+  return "記録済み";
 }
 
 function formatConcerns(values) {

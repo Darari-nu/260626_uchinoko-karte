@@ -412,6 +412,26 @@ label {
   color: var(--teal-deep);
 }
 
+.calendar-day.has-caution {
+  border-color: rgba(217, 144, 37, 0.5);
+  box-shadow: inset 4px 0 0 var(--amber);
+}
+
+.calendar-day.has-caution .calendar-status {
+  background: rgba(217, 144, 37, 0.14);
+  color: #7B4B08;
+}
+
+.calendar-day.has-alert {
+  border-color: rgba(216, 74, 74, 0.55);
+  box-shadow: inset 4px 0 0 var(--red);
+}
+
+.calendar-day.has-alert .calendar-status {
+  background: rgba(216, 74, 74, 0.14);
+  color: #9D2F2F;
+}
+
 .day-detail,
 .report-preview,
 .danger-zone {
@@ -456,6 +476,34 @@ label {
 
 .summary-item strong {
   color: var(--teal-deep);
+}
+
+.flag-box {
+  margin-top: 14px;
+  border: 1px solid rgba(217, 144, 37, 0.5);
+  border-left: 4px solid var(--amber);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(217, 144, 37, 0.08);
+}
+
+.flag-box.is-alert {
+  border-color: rgba(216, 74, 74, 0.55);
+  border-left-color: var(--red);
+  background: rgba(216, 74, 74, 0.08);
+}
+
+.flag-box strong {
+  color: #7B4B08;
+}
+
+.flag-box.is-alert strong {
+  color: #9D2F2F;
+}
+
+.flag-box ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
 }
 
 .status-text[data-status="success"] {
