@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>うちの子カルテ</title>
+  <title>うちの子カルテ | 獣医提出用・現場報告書</title>
   <meta name="description" content="猫・犬の小さな変化を1分で残し、動物病院で落ち着いて説明するためのローカル保存カルテ。">
-  <meta name="theme-color" content="#2F8F83">
+  <meta name="theme-color" content="#243B53">
   <meta property="og:type" content="website">
   <meta property="og:title" content="うちの子カルテ">
   <meta property="og:description" content="猫・犬の毎日の変化を端末内に保存し、過去2週間の受診用レポートにまとめる静的Webアプリ。">
@@ -19,8 +19,9 @@
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="#top" aria-label="うちの子カルテ トップへ">
-        <span class="brand-mark" aria-hidden="true">◇</span>
-        <span>うちの子カルテ</span>
+        <span class="brand-mark" aria-hidden="true">UC</span>
+        <span class="brand-text">うちの子カルテ</span>
+        <span class="brand-sub">Vet Report</span>
       </a>
       <nav class="header-nav" aria-label="主要メニュー">
         <a href="#today">今日</a>
@@ -35,21 +36,45 @@
     <section class="hero section-band" aria-labelledby="hero-title">
       <div class="hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow">猫・犬のための受診準備カルテ</p>
-          <h1 id="hero-title">獣医さんに「いつから？」と聞かれても、落ち着いて話せるように。</h1>
-          <p>食事、排便、気分、気になることを1分で残して、過去2週間の変化を受診用レポートにまとめます。</p>
+          <p class="eyebrow">獣医提出用・現場報告書</p>
+          <h1 id="hero-title">「いつから、どの頻度で、何が違うか」を1分で提出できる形へ。</h1>
+          <p class="hero-lead">食事、排便、気分、気になることを日次の不具合票として残し、受診前に14日分の時系列と判断材料を揃えます。</p>
+          <div class="hero-meta" aria-label="記録設計の特徴">
+            <span>LOCAL STORAGE</span>
+            <span>14 DAYS</span>
+            <span>PRINT READY</span>
+          </div>
           <div class="hero-actions">
-            <a class="button primary" href="#today">今日の記録へ</a>
-            <a class="button secondary" href="#report">印刷準備へ</a>
+            <a class="button primary" href="#today">今日の報告を作成</a>
+            <a class="button secondary" href="#report">提出書式を確認</a>
           </div>
         </div>
-        <div class="hero-visual" role="img" aria-label="カレンダーとカルテをイメージしたプレースホルダー">
-          <!-- TODO Codex生成画像: ヒーロー画像 -->
-          <div class="placeholder-card">
-            <span class="placeholder-date">14 days</span>
-            <span class="placeholder-line wide"></span>
-            <span class="placeholder-line"></span>
-            <span class="placeholder-alert">いつもと違う</span>
+        <div class="hero-visual" role="img" aria-label="獣医提出用の現場報告書プレビュー">
+          <div class="report-sheet">
+            <div class="sheet-head">
+              <span>UCHINOKO KARTE</span>
+              <strong>現場報告書</strong>
+            </div>
+            <div class="stamp">要確認</div>
+            <div class="sheet-row">
+              <span>症状</span>
+              <strong>食欲低下 / 歩き方</strong>
+            </div>
+            <div class="sheet-row">
+              <span>発生時刻</span>
+              <strong>朝食後から</strong>
+            </div>
+            <div class="sheet-row">
+              <span>再現頻度</span>
+              <strong>2日連続</strong>
+            </div>
+            <div class="sheet-row">
+              <span>添付写真</span>
+              <strong>3件</strong>
+            </div>
+            <div class="timeline" aria-hidden="true">
+              <span></span><span></span><span class="is-caution"></span><span></span><span class="is-alert"></span><span></span>
+            </div>
           </div>
         </div>
       </div>
@@ -58,13 +83,20 @@
     <div class="app-shell">
       <section class="card today-card" id="today" aria-labelledby="today-title">
         <div class="section-heading">
-          <p class="eyebrow">1分入力</p>
-          <h2 id="today-title">今日の記録</h2>
+          <p class="eyebrow">REPORT-01 / 1分入力</p>
+          <h2 id="today-title">今日の現場報告</h2>
           <p id="today-meta" class="muted">ペット登録後、今日の日付の記録を保存できます。</p>
         </div>
 
         <form id="daily-form" class="stacked-form">
-          <fieldset>
+          <div class="ticket-strip" aria-label="報告項目">
+            <span>症状</span>
+            <span>発生時刻</span>
+            <span>再現頻度</span>
+            <span>添付写真</span>
+          </div>
+
+          <fieldset class="report-fieldset">
             <legend>食事量</legend>
             <div class="choice-grid" data-choice-group="meal">
               <button type="button" class="choice-button" data-value="normal">🍚 <span>完食</span></button>
@@ -74,7 +106,7 @@
             </div>
           </fieldset>
 
-          <fieldset>
+          <fieldset class="report-fieldset">
             <legend>排便</legend>
             <div class="choice-grid" data-choice-group="poop">
               <button type="button" class="choice-button" data-value="normal">💩 <span>通常</span></button>
@@ -85,7 +117,7 @@
             </div>
           </fieldset>
 
-          <fieldset>
+          <fieldset class="report-fieldset">
             <legend>気分</legend>
             <div class="choice-grid" data-choice-group="mood">
               <button type="button" class="choice-button" data-value="active">🙂 <span>元気</span></button>
@@ -96,7 +128,7 @@
             </div>
           </fieldset>
 
-          <fieldset>
+          <fieldset class="report-fieldset is-attention">
             <legend>気になること</legend>
             <div class="choice-grid concerns-grid" data-choice-group="concerns">
               <button type="button" class="choice-button" data-value="vomit">🤮 <span>吐いた</span></button>
@@ -110,7 +142,7 @@
           </fieldset>
 
           <div class="field">
-            <label for="daily-memo">メモ</label>
+            <label for="daily-memo">獣医さんへ伝える補足</label>
             <textarea id="daily-memo" name="memo" rows="3" maxlength="180" placeholder="獣医さんに聞かれそうなことを一言だけ"></textarea>
           </div>
 
@@ -121,9 +153,9 @@
 
       <section class="card calendar-card" id="calendar" aria-labelledby="calendar-title">
         <div class="section-heading">
-          <p class="eyebrow">直近14日</p>
-          <h2 id="calendar-title">過去カレンダー</h2>
-          <p class="muted">記録済みの日と「いつもと違う」日を分けて表示します。</p>
+          <p class="eyebrow">TIMELINE / 直近14日</p>
+          <h2 id="calendar-title">時系列バー</h2>
+          <p class="muted">通常記録は薄く、受診判断に関わる変化だけを黄色で拾います。</p>
         </div>
         <div id="calendar-grid" class="calendar-grid" aria-live="polite">
           <p class="empty-state">記録が入ると、ここに14日分の状態が並びます。</p>
@@ -139,8 +171,8 @@
       <div class="section-inner">
         <div class="card report-card">
           <div class="section-heading">
-            <p class="eyebrow">受診前に見せる</p>
-            <h2 id="report-title">レポート出力</h2>
+            <p class="eyebrow">SUBMISSION / 受診前に見せる</p>
+            <h2 id="report-title">獣医提出レポート</h2>
             <p class="muted">過去2週間の食事、排便、気分、気になることを獣医さんが読みやすい形にまとめます。</p>
           </div>
           <div id="report-preview" class="report-preview">
@@ -154,8 +186,8 @@
     <section class="section-inner settings-section" id="settings" aria-labelledby="settings-title">
       <div class="card">
         <div class="section-heading">
-          <p class="eyebrow">端末内保存</p>
-          <h2 id="settings-title">設定</h2>
+          <p class="eyebrow">PROFILE / 端末内保存</p>
+          <h2 id="settings-title">基本台帳</h2>
           <p class="muted">ペットのプロフィールと普段の状態を保存します。外部送信はありません。</p>
         </div>
 
