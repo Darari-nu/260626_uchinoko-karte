@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindChoiceButtons();
   bindForms();
   bindDataDeletion();
+  bindPrintButton();
   loadInitialState();
   renderApp();
 });
@@ -60,6 +61,7 @@ function cacheElements() {
   els.calendarGrid = document.querySelector("#calendar-grid");
   els.dayDetail = document.querySelector("#day-detail");
   els.reportPreview = document.querySelector("#report-preview");
+  els.printButton = document.querySelector("#print-button");
   els.deleteDataButton = document.querySelector("#delete-data-button");
 }
 
@@ -160,6 +162,13 @@ function bindDataDeletion() {
     els.profileForm.reset();
     renderApp();
     setStatus("この端末のデータを削除しました。", "success");
+  });
+}
+
+function bindPrintButton() {
+  els.printButton.addEventListener("click", () => {
+    renderReport();
+    window.print();
   });
 }
 
@@ -310,7 +319,7 @@ function renderApp() {
   renderTodayMeta();
   renderChoiceState();
   renderCalendar();
-  renderBasicReport();
+  renderReport();
 }
 
 function renderProfileForm() {
@@ -418,26 +427,74 @@ function renderDayDetail(record, flags = { level: "none", reasons: [] }) {
   }
 }
 
-function renderBasicReport() {
+function renderReport() {
   clearElement(els.reportPreview);
   const profile = getActiveProfile();
   if (!profile) {
     appendEmpty(els.reportPreview, "ペット登録と日次記録を保存すると、2週間サマリーが表示されます。");
     return;
   }
-  const records = recentDateKeys(14)
-    .map((dateKey) => getDailyRecord(profile.id, dateKey))
-    .filter(Boolean);
-  if (records.length === 0) {
+  const report = buildVetReport(profile.id, { days: 14 });
+  const recordedCount = report.records.filter((item) => item.record).length;
+  if (recordedCount === 0) {
     appendEmpty(els.reportPreview, `${profile.name}の記録はまだありません。今日の記録から始められます。`);
     return;
   }
+
+  const printTitle = document.createElement("div");
+  printTitle.className = "print-report-title";
+  const title = document.createElement("h3");
+  title.textContent = "うちの子カルテ 受診用レポート";
+  const profileLine = document.createElement("p");
+  profileLine.textContent = `${report.profile.name} / ${LABELS.species[report.profile.species] || "ペット"} / ${report.periodLabel}`;
+  printTitle.append(title, profileLine);
+
   const summary = document.createElement("div");
   summary.className = "summary-list";
-  appendStat(summary, "記録済み", `${records.length}日`);
-  appendStat(summary, "食事が少なめ以下", `${records.filter((record) => record.meal !== "normal").length}日`);
-  appendStat(summary, "気になることあり", `${records.filter((record) => record.concerns.length > 0).length}日`);
-  els.reportPreview.append(summary);
+  appendStat(summary, "記録済み", `${report.summary.recordedDays}日`);
+  appendStat(summary, "食事低下", `${report.summary.mealDownDays}日`);
+  appendStat(summary, "排便の変化", `${report.summary.poopIssueDays}日`);
+  appendStat(summary, "気分低下", `${report.summary.moodDownDays}日`);
+  appendStat(summary, "気になること", report.summary.topConcern || "なし");
+  appendStat(summary, "最初の変化", report.summary.firstFlagLabel || "目立つ変化なし");
+
+  const table = document.createElement("table");
+  table.className = "report-table";
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  ["日付", "食事", "排便", "気分", "気になること・メモ", "検出"].forEach((labelText) => {
+    const th = document.createElement("th");
+    th.scope = "col";
+    th.textContent = labelText;
+    headRow.append(th);
+  });
+  thead.append(headRow);
+  const tbody = document.createElement("tbody");
+  report.records.forEach(({ dateKey, record, flags }) => {
+    const tr = document.createElement("tr");
+    if (flags.level === "alert") tr.className = "report-alert-row";
+    if (flags.level === "caution") tr.className = "report-caution-row";
+    [
+      formatDateLabel(dateKey),
+      record ? LABELS.meal[record.meal] : "記録なし",
+      record ? LABELS.poop[record.poop] : "記録なし",
+      record ? LABELS.mood[record.mood] : "記録なし",
+      record ? joinNonEmpty([formatConcerns(record.concerns), record.memo]) : "記録なし",
+      record ? (flags.reasons.join(" / ") || "通常") : "未入力",
+    ].forEach((cellText) => {
+      const td = document.createElement("td");
+      td.textContent = cellText;
+      tr.append(td);
+    });
+    tbody.append(tr);
+  });
+  table.append(thead, tbody);
+
+  const note = document.createElement("p");
+  note.className = "print-note";
+  note.textContent = "注記: このレポートは診断ではなく、受診時の説明補助です。気になる症状がある場合は獣医師に相談してください。";
+
+  els.reportPreview.append(printTitle, summary, table, note);
 }
 
 function recentDateKeys(days) {
@@ -471,6 +528,36 @@ function getFlaggedRecords(petId, days, baseline) {
     item.flags = detectRecordFlags(item.record, previousRecords, baseline);
   });
   return items;
+}
+
+function buildVetReport(petId, options = {}) {
+  const days = options.days || 14;
+  const profile = readJSON(profileKey(petId), null);
+  const records = getFlaggedRecords(petId, days, profile?.baseline || {});
+  const recorded = records.filter((item) => item.record);
+  const concernCounts = {};
+  recorded.forEach(({ record }) => {
+    record.concerns.forEach((concern) => {
+      concernCounts[concern] = (concernCounts[concern] || 0) + 1;
+    });
+  });
+  const topConcernEntry = Object.entries(concernCounts).sort((a, b) => b[1] - a[1])[0];
+  const firstFlag = records.find((item) => item.flags.level === "alert" || item.flags.level === "caution");
+  const firstDate = records[0]?.dateKey || todayKey();
+  const lastDate = records.at(-1)?.dateKey || todayKey();
+  return {
+    profile,
+    periodLabel: `${formatDateLabel(firstDate)}〜${formatDateLabel(lastDate)}`,
+    records,
+    summary: {
+      recordedDays: recorded.length,
+      mealDownDays: recorded.filter(({ record }) => ["less", "half", "none"].includes(record.meal)).length,
+      poopIssueDays: recorded.filter(({ record }) => ["less", "more", "diarrhea", "none"].includes(record.poop)).length,
+      moodDownDays: recorded.filter(({ record }) => ["sleepy", "grumpy", "weak"].includes(record.mood)).length,
+      topConcern: topConcernEntry ? `${LABELS.concerns[topConcernEntry[0]] || topConcernEntry[0]} ${topConcernEntry[1]}日` : "",
+      firstFlagLabel: firstFlag ? `${formatDateLabel(firstFlag.dateKey)} ${firstFlag.flags.reasons[0]}` : "",
+    },
+  };
 }
 
 function detectRecordFlags(record, previousRecords, baseline = {}) {
@@ -545,6 +632,10 @@ function getStatusText(record, flags) {
 function formatConcerns(values) {
   if (!values || values.length === 0) return "なし";
   return values.map((value) => LABELS.concerns[value] || value).join("、");
+}
+
+function joinNonEmpty(values) {
+  return values.filter((value) => value && value !== "なし").join(" / ") || "なし";
 }
 
 function appendDefinition(list, termText, detailText) {

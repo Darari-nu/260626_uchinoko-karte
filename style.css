@@ -478,6 +478,45 @@ label {
   color: var(--teal-deep);
 }
 
+.print-report-title {
+  display: none;
+}
+
+.report-table {
+  width: 100%;
+  margin-top: 18px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.report-table th,
+.report-table td {
+  border: 1px solid var(--border);
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.report-table th {
+  background: #F3EEE6;
+  font-weight: 800;
+}
+
+.report-alert-row td {
+  background: rgba(216, 74, 74, 0.08);
+}
+
+.report-caution-row td {
+  background: rgba(217, 144, 37, 0.08);
+}
+
+.print-note {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .flag-box {
   margin-top: 14px;
   border: 1px solid rgba(217, 144, 37, 0.5);
@@ -590,5 +629,112 @@ label {
     min-height: 52px;
     padding: 8px 6px;
     font-size: 14px;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff;
+    color: #111;
+    font-size: 10.5pt;
+    line-height: 1.4;
+  }
+
+  .site-header,
+  .hero,
+  .app-shell,
+  .settings-section,
+  .site-footer,
+  .section-heading,
+  .print-button {
+    display: none !important;
+  }
+
+  .section-band,
+  .section-inner {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .report-section {
+    background: #fff;
+  }
+
+  .card,
+  .report-card {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .report-preview {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .print-report-title {
+    display: block;
+    margin-bottom: 10mm;
+  }
+
+  .print-report-title h3 {
+    margin: 0 0 2mm;
+    font-size: 16pt;
+  }
+
+  .print-report-title p {
+    margin: 0;
+  }
+
+  .summary-list {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3mm;
+    margin-bottom: 6mm;
+  }
+
+  .summary-item {
+    break-inside: avoid;
+    padding: 3mm;
+    border-color: #bbb;
+    background: #fff;
+  }
+
+  .summary-item strong {
+    color: #111;
+  }
+
+  .report-table {
+    margin-top: 0;
+    font-size: 9pt;
+  }
+
+  .report-table th,
+  .report-table td {
+    border-color: #999;
+    padding: 2mm;
+  }
+
+  .report-table th {
+    background: #eee;
+  }
+
+  .report-alert-row td {
+    background: #FCE8E8 !important;
+  }
+
+  .report-caution-row td {
+    background: #FFF2DB !important;
+  }
+
+  .print-note {
+    color: #111;
+    font-size: 9pt;
   }
 }
