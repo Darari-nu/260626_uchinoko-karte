@@ -574,6 +574,7 @@ legend {
 }
 
 .field textarea {
+  min-height: 92px;
   resize: vertical;
 }
 
@@ -656,6 +657,7 @@ legend {
 
 .report-preview {
   overflow-x: auto;
+  scrollbar-color: var(--line-dark) transparent;
 }
 
 .detail-list {
@@ -892,6 +894,14 @@ legend {
     top: 68px;
     right: 20px;
     font-size: 16px;
+  }
+
+  .report-table {
+    font-size: 13px;
+  }
+
+  .settings-section {
+    padding-top: 6px;
   }
 }
 
