@@ -1,672 +1,363 @@
-const STORAGE_VERSION = "1";
-const STORAGE_KEYS = {
-  version: "uchinoko:version",
-  pets: "uchinoko:pets",
-  settings: "uchinoko:settings",
-};
+const STORAGE_KEY = "uchinoko_vet_memos";
+const MAX_HISTORY = 5;
 
-const LABELS = {
-  species: { cat: "猫", dog: "犬" },
-  meal: { normal: "完食", less: "少なめ", half: "半分以下", none: "食べない" },
-  poop: { normal: "通常", less: "少ない", more: "多い", diarrhea: "下痢", none: "出ていない" },
-  mood: { active: "元気", normal: "普通", sleepy: "眠い", grumpy: "不機嫌", weak: "ぐったり" },
-  concerns: {
-    vomit: "吐いた",
-    cough: "咳",
-    itchy: "かゆい",
-    limp: "歩き方",
-    drinks_more: "水をよく飲む",
-    pee_issue: "おしっこ",
-    other: "その他",
-  },
-};
-
-const state = {
-  activePetId: null,
-  selectedDate: todayKey(),
-  form: {
-    meal: "normal",
-    poop: "normal",
-    mood: "normal",
-    concerns: [],
-  },
+const answers = {
+  startedAt: "",
+  frequency: "",
+  symptoms: [],
+  otherSymptom: "",
+  changeAfterVisit: "",
+  note: "",
 };
 
 const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   cacheElements();
-  initializeStorage();
-  bindChoiceButtons();
-  bindForms();
-  bindDataDeletion();
-  bindPrintButton();
-  loadInitialState();
-  renderApp();
+  bindChoices();
+  bindInputs();
+  bindActions();
+  renderAll();
 });
 
 function cacheElements() {
-  els.dailyForm = document.querySelector("#daily-form");
-  els.profileForm = document.querySelector("#profile-form");
-  els.todayMeta = document.querySelector("#today-meta");
-  els.saveStatus = document.querySelector("#save-status");
-  els.dailyMemo = document.querySelector("#daily-memo");
-  els.petName = document.querySelector("#pet-name");
-  els.petSpecies = document.querySelector("#pet-species");
-  els.petBirthYear = document.querySelector("#pet-birth-year");
-  els.baselineMeal = document.querySelector("#baseline-meal");
-  els.baselinePoop = document.querySelector("#baseline-poop");
-  els.baselineMood = document.querySelector("#baseline-mood");
-  els.petNotes = document.querySelector("#pet-notes");
-  els.calendarGrid = document.querySelector("#calendar-grid");
-  els.dayDetail = document.querySelector("#day-detail");
-  els.reportPreview = document.querySelector("#report-preview");
-  els.printButton = document.querySelector("#print-button");
-  els.deleteDataButton = document.querySelector("#delete-data-button");
+  els.form = document.querySelector("#memo-form");
+  els.generatedText = document.querySelector("#generated-text");
+  els.statusMessage = document.querySelector("#status-message");
+  els.copyButton = document.querySelector("#copy-button");
+  els.saveButton = document.querySelector("#save-button");
+  els.historyList = document.querySelector("#history-list");
+  els.otherSymptomField = document.querySelector("#other-symptom-field");
+  els.otherSymptom = document.querySelector("#other-symptom");
+  els.note = document.querySelector("#note");
 }
 
-function initializeStorage() {
-  if (!localStorage.getItem(STORAGE_KEYS.version)) {
-    localStorage.setItem(STORAGE_KEYS.version, STORAGE_VERSION);
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.pets)) {
-    writeJSON(STORAGE_KEYS.pets, []);
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.settings)) {
-    writeJSON(STORAGE_KEYS.settings, {
-      activePetId: null,
-      reportDays: 14,
-      theme: "calm-clinic",
-      lastOpenedDate: todayKey(),
-    });
-  }
-}
-
-function loadInitialState() {
-  const settings = getSettings();
-  const petIds = listPetIds();
-  state.activePetId = settings.activePetId || petIds[0] || null;
-  state.selectedDate = todayKey();
-  updateSettings({ activePetId: state.activePetId, lastOpenedDate: todayKey() });
-  loadRecordIntoForm();
-}
-
-function bindChoiceButtons() {
-  document.querySelectorAll("[data-choice-group]").forEach((groupEl) => {
+function bindChoices() {
+  document.querySelectorAll("[data-question]").forEach((groupEl) => {
     groupEl.querySelectorAll(".choice-button").forEach((button) => {
       button.setAttribute("aria-pressed", "false");
       button.addEventListener("click", () => {
-        const group = groupEl.dataset.choiceGroup;
-        const value = button.dataset.value;
-        if (group === "concerns") {
-          toggleConcern(value);
-        } else {
-          state.form[group] = value;
-        }
-        renderChoiceState();
+        updateAnswer(groupEl.dataset.question, groupEl.dataset.type, button.dataset.value);
+        renderAll();
       });
     });
   });
 }
 
-function bindForms() {
-  els.profileForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const name = els.petName.value.trim();
-    if (!name) {
-      setStatus("ペット名を入力してから保存してください。", "warning");
-      els.petName.focus();
-      return;
-    }
-    const pet = saveProfileFromForm();
-    state.activePetId = pet.id;
-    updateSettings({ activePetId: pet.id });
-    loadRecordIntoForm();
-    renderApp();
-    setStatus(`${pet.name}のプロフィールを保存しました。`, "success");
+function bindInputs() {
+  els.otherSymptom.addEventListener("input", () => {
+    answers.otherSymptom = els.otherSymptom.value.trim();
+    renderGeneratedText();
   });
 
-  els.dailyForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const profile = getActiveProfile();
-    if (!profile) {
-      setStatus("先に設定でペット名を登録してください。", "warning");
-      els.petName.focus();
-      return;
+  els.note.addEventListener("input", () => {
+    answers.note = els.note.value.trim();
+    renderGeneratedText();
+  });
+}
+
+function bindActions() {
+  els.copyButton.addEventListener("click", () => {
+    copyText(getGeneratedText());
+  });
+
+  els.saveButton.addEventListener("click", () => {
+    saveCurrentMemo();
+  });
+}
+
+function updateAnswer(question, type, value) {
+  if (type === "multiple") {
+    answers[question] = answers[question].includes(value)
+      ? answers[question].filter((item) => item !== value)
+      : [...answers[question], value];
+    if (value === "その他" && !answers[question].includes("その他")) {
+      answers.otherSymptom = "";
+      els.otherSymptom.value = "";
     }
-    saveDailyRecord(profile.id, todayKey(), {
-      meal: state.form.meal,
-      poop: state.form.poop,
-      mood: state.form.mood,
-      concerns: [...state.form.concerns],
-      memo: els.dailyMemo.value.trim(),
+    return;
+  }
+
+  answers[question] = answers[question] === value ? "" : value;
+}
+
+function renderAll() {
+  renderChoices();
+  renderOtherSymptomField();
+  renderGeneratedText();
+  renderHistory();
+}
+
+function renderChoices() {
+  document.querySelectorAll("[data-question]").forEach((groupEl) => {
+    const question = groupEl.dataset.question;
+    const type = groupEl.dataset.type;
+    groupEl.querySelectorAll(".choice-button").forEach((button) => {
+      const value = button.dataset.value;
+      const selected = type === "multiple"
+        ? answers[question].includes(value)
+        : answers[question] === value;
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+      button.classList.toggle("is-selected", selected);
     });
-    state.selectedDate = todayKey();
-    renderApp();
-    setStatus("今日の記録を保存しました。受診で伝えやすい形で残っています。", "success");
   });
 }
 
-function bindDataDeletion() {
-  els.deleteDataButton.addEventListener("click", () => {
-    const ok = window.confirm("この端末に保存された、うちの子カルテのデータを削除します。よろしいですか？");
-    if (!ok) return;
-    Object.keys(localStorage)
-      .filter((key) => key.startsWith("uchinoko:"))
-      .forEach((key) => localStorage.removeItem(key));
-    initializeStorage();
-    state.activePetId = null;
-    state.selectedDate = todayKey();
-    state.form = { meal: "normal", poop: "normal", mood: "normal", concerns: [] };
-    els.dailyMemo.value = "";
-    els.profileForm.reset();
-    renderApp();
-    setStatus("この端末のデータを削除しました。", "success");
-  });
-}
-
-function bindPrintButton() {
-  els.printButton.addEventListener("click", () => {
-    renderReport();
-    window.print();
-  });
-}
-
-function saveProfileFromForm() {
-  const existing = getActiveProfile();
-  const id = existing?.id || createPetId();
-  const profile = {
-    id,
-    name: els.petName.value.trim(),
-    species: els.petSpecies.value,
-    birthYear: normalizeYear(els.petBirthYear.value),
-    sex: "unknown",
-    baseline: {
-      meal: els.baselineMeal.value,
-      poop: els.baselinePoop.value,
-      mood: els.baselineMood.value,
-    },
-    notes: els.petNotes.value.trim(),
-  };
-  const ids = listPetIds();
-  if (!ids.includes(id)) {
-    writeJSON(STORAGE_KEYS.pets, [...ids, id]);
+function renderOtherSymptomField() {
+  const shouldShow = answers.symptoms.includes("その他");
+  els.otherSymptomField.hidden = !shouldShow;
+  if (!shouldShow) {
+    answers.otherSymptom = "";
+    els.otherSymptom.value = "";
   }
-  writeJSON(profileKey(id), profile);
-  return profile;
 }
 
-function saveDailyRecord(petId, date, input) {
-  const existing = getDailyRecord(petId, date);
-  const now = new Date().toISOString();
-  const record = {
-    date,
-    meal: input.meal || "normal",
-    poop: input.poop || "normal",
-    mood: input.mood || "normal",
-    concerns: Array.isArray(input.concerns) ? input.concerns : [],
-    memo: input.memo || "",
-    createdAt: existing?.createdAt || now,
-    updatedAt: now,
-  };
-  writeJSON(recordKey(petId, date), record);
-  return record;
+function renderGeneratedText() {
+  const text = getGeneratedText();
+  clearElement(els.generatedText);
+  els.generatedText.classList.toggle("is-empty", !text);
+  els.generatedText.textContent = text || "気になる項目を選ぶと、ここに獣医さんへ伝える文章が表示されます。";
+  if (text) {
+    setStatus("文章をコピーまたは保存できます。", "success");
+  } else {
+    setStatus("未選択の項目があります。", "");
+  }
 }
 
-function getDailyRecord(petId, date) {
-  if (!petId) return null;
-  return readJSON(recordKey(petId, date), null);
+function getGeneratedText() {
+  const lines = [];
+  const symptoms = getSymptomList();
+
+  if (answers.startedAt && symptoms) {
+    lines.push(`${answers.startedAt}、${symptoms}が気になっています。`);
+  } else if (answers.startedAt) {
+    lines.push(`${answers.startedAt}気になる様子があります。`);
+  } else if (symptoms) {
+    lines.push(`${symptoms}が気になっています。`);
+  }
+
+  if (answers.frequency) {
+    lines.push(`頻度は${answers.frequency}です。`);
+  }
+
+  if (answers.changeAfterVisit) {
+    lines.push(`前回の受診後は${answers.changeAfterVisit}と感じています。`);
+  }
+
+  if (answers.note) {
+    lines.push(`補足として、${answers.note}。`);
+  }
+
+  return lines.join("\n");
 }
 
-function getActiveProfile() {
-  if (!state.activePetId) return null;
-  return readJSON(profileKey(state.activePetId), null);
+function getSymptomList() {
+  const symptoms = answers.symptoms
+    .filter((symptom) => symptom !== "その他");
+  if (answers.symptoms.includes("その他") && answers.otherSymptom) {
+    symptoms.push(answers.otherSymptom);
+  } else if (answers.symptoms.includes("その他")) {
+    symptoms.push("その他の症状");
+  }
+  return symptoms.join("、");
 }
 
-function listPetIds() {
-  return readJSON(STORAGE_KEYS.pets, []);
-}
+async function copyText(text) {
+  if (!text) {
+    setStatus("コピーする文章がまだありません。", "warning");
+    return;
+  }
 
-function getSettings() {
-  return readJSON(STORAGE_KEYS.settings, {
-    activePetId: null,
-    reportDays: 14,
-    theme: "calm-clinic",
-    lastOpenedDate: todayKey(),
-  });
-}
-
-function updateSettings(patch) {
-  const next = { ...getSettings(), ...patch };
-  writeJSON(STORAGE_KEYS.settings, next);
-  return next;
-}
-
-function readJSON(key, fallback) {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      fallbackCopy(text);
+    }
+    setStatus("文章をコピーしました。", "success");
   } catch (error) {
-    console.warn(`Failed to parse localStorage key: ${key}`, error);
-    return fallback;
+    fallbackCopy(text);
+    setStatus("文章をコピーしました。", "success");
   }
 }
 
-function writeJSON(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+function fallbackCopy(text) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-1000px";
+  document.body.append(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
 }
 
-function profileKey(id) {
-  return `uchinoko:pets/${id}/profile`;
+function saveCurrentMemo() {
+  const generatedText = getGeneratedText();
+  if (!generatedText) {
+    setStatus("保存する文章がまだありません。", "warning");
+    return;
+  }
+
+  const memo = {
+    id: createId(),
+    savedAt: new Date().toISOString(),
+    isVisit: false,
+    answers: cloneAnswers(),
+    generatedText,
+  };
+  const memos = [memo, ...readMemos()].slice(0, MAX_HISTORY);
+  writeMemos(memos);
+  setStatus("メモを保存しました。", "success");
+  renderHistory();
 }
 
-function recordKey(id, date) {
-  return `uchinoko:pets/${id}/records/${date}`;
+function renderHistory() {
+  clearElement(els.historyList);
+  const memos = readMemos();
+  if (memos.length === 0) {
+    appendEmpty(els.historyList, "保存したメモはまだありません。");
+    return;
+  }
+
+  memos.forEach((memo) => {
+    const item = document.createElement("article");
+    item.className = "history-item";
+
+    const meta = document.createElement("div");
+    meta.className = "history-meta";
+    const date = document.createElement("span");
+    date.textContent = formatSavedAt(memo.savedAt);
+    const visitMark = document.createElement("span");
+    visitMark.className = "visit-mark";
+    visitMark.textContent = memo.isVisit ? "受診日" : "通常メモ";
+    meta.append(date, visitMark);
+
+    const visitLabel = document.createElement("label");
+    visitLabel.className = "visit-toggle";
+    const visitInput = document.createElement("input");
+    visitInput.type = "checkbox";
+    visitInput.checked = Boolean(memo.isVisit);
+    visitInput.addEventListener("change", () => {
+      updateVisitFlag(memo.id, visitInput.checked);
+    });
+    const visitText = document.createElement("span");
+    visitText.textContent = "受診日";
+    visitLabel.append(visitInput, visitText);
+    meta.append(visitLabel);
+
+    const excerpt = document.createElement("p");
+    excerpt.className = "history-excerpt";
+    excerpt.textContent = createExcerpt(memo.generatedText);
+
+    const actions = document.createElement("div");
+    actions.className = "history-actions";
+    actions.append(
+      createHistoryButton("開く", "secondary", () => openMemo(memo)),
+      createHistoryButton("コピー", "secondary", () => copyText(memo.generatedText)),
+      createHistoryButton("削除", "danger", () => deleteMemo(memo.id)),
+    );
+
+    item.append(meta, excerpt, actions);
+    els.historyList.append(item);
+  });
 }
 
-function createPetId() {
+function createHistoryButton(label, style, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `button small ${style}`;
+  button.textContent = label;
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+function openMemo(memo) {
+  Object.assign(answers, {
+    startedAt: memo.answers?.startedAt || "",
+    frequency: memo.answers?.frequency || "",
+    symptoms: Array.isArray(memo.answers?.symptoms) ? memo.answers.symptoms : [],
+    otherSymptom: memo.answers?.otherSymptom || "",
+    changeAfterVisit: memo.answers?.changeAfterVisit || "",
+    note: memo.answers?.note || "",
+  });
+  els.otherSymptom.value = answers.otherSymptom;
+  els.note.value = answers.note;
+  renderAll();
+  document.querySelector("#memo-output").scrollIntoView({ behavior: "smooth", block: "start" });
+  setStatus("保存済みメモを開きました。", "success");
+}
+
+function updateVisitFlag(id, isVisit) {
+  const memos = readMemos().map((memo) => (
+    memo.id === id ? { ...memo, isVisit } : memo
+  ));
+  writeMemos(memos);
+  renderHistory();
+}
+
+function deleteMemo(id) {
+  const memos = readMemos().filter((memo) => memo.id !== id);
+  writeMemos(memos);
+  setStatus("メモを削除しました。", "success");
+  renderHistory();
+}
+
+function readMemos() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.slice(0, MAX_HISTORY) : [];
+  } catch (error) {
+    console.warn(`Failed to parse localStorage key: ${STORAGE_KEY}`, error);
+    return [];
+  }
+}
+
+function writeMemos(memos) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(memos.slice(0, MAX_HISTORY)));
+}
+
+function cloneAnswers() {
+  return {
+    startedAt: answers.startedAt,
+    frequency: answers.frequency,
+    symptoms: [...answers.symptoms],
+    otherSymptom: answers.otherSymptom,
+    changeAfterVisit: answers.changeAfterVisit,
+    note: answers.note,
+  };
+}
+
+function createId() {
   if (window.crypto?.randomUUID) {
-    return `pet_${window.crypto.randomUUID().slice(0, 8)}`;
+    return window.crypto.randomUUID();
   }
-  return `pet_${Date.now().toString(36)}`;
+  return `memo_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function normalizeYear(value) {
-  const year = Number.parseInt(value, 10);
-  if (!Number.isFinite(year)) return "";
-  return String(year).slice(0, 4);
-}
-
-function todayKey() {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function formatDateLabel(dateKey) {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
+function formatSavedAt(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "保存日不明";
   return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
     month: "numeric",
     day: "numeric",
-    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(date);
 }
 
-function toggleConcern(value) {
-  if (state.form.concerns.includes(value)) {
-    state.form.concerns = state.form.concerns.filter((item) => item !== value);
-  } else {
-    state.form.concerns = [...state.form.concerns, value];
-  }
-}
-
-function loadRecordIntoForm() {
-  const record = getDailyRecord(state.activePetId, todayKey());
-  state.form = {
-    meal: record?.meal || "normal",
-    poop: record?.poop || "normal",
-    mood: record?.mood || "normal",
-    concerns: record?.concerns || [],
-  };
-  els.dailyMemo.value = record?.memo || "";
-}
-
-function renderApp() {
-  renderProfileForm();
-  renderTodayMeta();
-  renderChoiceState();
-  renderCalendar();
-  renderReport();
-}
-
-function renderProfileForm() {
-  const profile = getActiveProfile();
-  if (!profile) return;
-  els.petName.value = profile.name || "";
-  els.petSpecies.value = profile.species || "cat";
-  els.petBirthYear.value = profile.birthYear || "";
-  els.baselineMeal.value = profile.baseline?.meal || "normal";
-  els.baselinePoop.value = profile.baseline?.poop || "normal";
-  els.baselineMood.value = profile.baseline?.mood || "normal";
-  els.petNotes.value = profile.notes || "";
-}
-
-function renderTodayMeta() {
-  const profile = getActiveProfile();
-  if (!profile) {
-    els.todayMeta.textContent = "設定でペット名を登録すると、今日の記録を保存できます。";
-    return;
-  }
-  els.todayMeta.textContent = `${profile.name}（${LABELS.species[profile.species] || "ペット"}） / ${formatDateLabel(todayKey())}`;
-}
-
-function renderChoiceState() {
-  document.querySelectorAll("[data-choice-group]").forEach((groupEl) => {
-    const group = groupEl.dataset.choiceGroup;
-    groupEl.querySelectorAll(".choice-button").forEach((button) => {
-      const value = button.dataset.value;
-      const pressed = group === "concerns"
-        ? state.form.concerns.includes(value)
-        : state.form[group] === value;
-      button.setAttribute("aria-pressed", pressed ? "true" : "false");
-      button.classList.toggle("is-selected", pressed);
-    });
-  });
-}
-
-function renderCalendar() {
-  clearElement(els.calendarGrid);
-  const profile = getActiveProfile();
-  if (!profile) {
-    appendEmpty(els.calendarGrid, "ペット登録後、直近14日の記録状態がここに表示されます。");
-    renderDayDetail(null);
-    return;
-  }
-  const flaggedRecords = getFlaggedRecords(profile.id, 14, profile.baseline);
-  flaggedRecords.forEach(({ dateKey, record, flags }) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `calendar-day ${getDayStatusClass(record, flags)}`;
-    button.dataset.date = dateKey;
-    button.setAttribute("aria-label", `${formatDateLabel(dateKey)} ${getStatusText(record, flags)}`);
-    button.addEventListener("click", () => {
-      state.selectedDate = dateKey;
-      renderCalendar();
-      renderDayDetail(record, flags);
-    });
-    const date = document.createElement("span");
-    date.className = "calendar-date";
-    date.textContent = formatDateLabel(dateKey);
-    const status = document.createElement("span");
-    status.className = "calendar-status";
-    status.textContent = getStatusText(record, flags);
-    button.append(date, status);
-    if (dateKey === state.selectedDate) {
-      button.setAttribute("aria-current", "date");
-    }
-    els.calendarGrid.append(button);
-  });
-  const selected = flaggedRecords.find((item) => item.dateKey === state.selectedDate);
-  renderDayDetail(selected?.record || null, selected?.flags || { level: "none", reasons: [] });
-}
-
-function renderDayDetail(record, flags = { level: "none", reasons: [] }) {
-  clearElement(els.dayDetail);
-  const heading = document.createElement("h3");
-  heading.textContent = "日別詳細";
-  els.dayDetail.append(heading);
-  if (!record) {
-    appendMuted(els.dayDetail, "選択した日の記録はまだありません。未入力日は異常扱いしません。");
-    return;
-  }
-  const list = document.createElement("dl");
-  list.className = "detail-list";
-  appendDefinition(list, "日付", formatDateLabel(record.date));
-  appendDefinition(list, "食事", LABELS.meal[record.meal]);
-  appendDefinition(list, "排便", LABELS.poop[record.poop]);
-  appendDefinition(list, "気分", LABELS.mood[record.mood]);
-  appendDefinition(list, "気になること", formatConcerns(record.concerns));
-  appendDefinition(list, "メモ", record.memo || "なし");
-  els.dayDetail.append(list);
-  if (flags.reasons.length > 0) {
-    const flagBox = document.createElement("div");
-    flagBox.className = `flag-box ${flags.level === "alert" ? "is-alert" : "is-caution"}`;
-    const label = document.createElement("strong");
-    label.textContent = flags.level === "alert" ? "いつもと違う" : "注意";
-    const reasonList = document.createElement("ul");
-    flags.reasons.forEach((reason) => {
-      const item = document.createElement("li");
-      item.textContent = reason;
-      reasonList.append(item);
-    });
-    flagBox.append(label, reasonList);
-    els.dayDetail.append(flagBox);
-  }
-}
-
-function renderReport() {
-  clearElement(els.reportPreview);
-  const profile = getActiveProfile();
-  if (!profile) {
-    appendEmpty(els.reportPreview, "ペット登録と日次記録を保存すると、2週間サマリーが表示されます。");
-    return;
-  }
-  const report = buildVetReport(profile.id, { days: 14 });
-  const recordedCount = report.records.filter((item) => item.record).length;
-  if (recordedCount === 0) {
-    appendEmpty(els.reportPreview, `${profile.name}の記録はまだありません。今日の記録から始められます。`);
-    return;
-  }
-
-  const printTitle = document.createElement("div");
-  printTitle.className = "print-report-title";
-  const title = document.createElement("h3");
-  title.textContent = "うちの子カルテ 受診用レポート";
-  const profileLine = document.createElement("p");
-  profileLine.textContent = `${report.profile.name} / ${LABELS.species[report.profile.species] || "ペット"} / ${report.periodLabel}`;
-  printTitle.append(title, profileLine);
-
-  const summary = document.createElement("div");
-  summary.className = "summary-list";
-  appendStat(summary, "記録済み", `${report.summary.recordedDays}日`);
-  appendStat(summary, "食事低下", `${report.summary.mealDownDays}日`);
-  appendStat(summary, "排便の変化", `${report.summary.poopIssueDays}日`);
-  appendStat(summary, "気分低下", `${report.summary.moodDownDays}日`);
-  appendStat(summary, "気になること", report.summary.topConcern || "なし");
-  appendStat(summary, "最初の変化", report.summary.firstFlagLabel || "目立つ変化なし");
-
-  const table = document.createElement("table");
-  table.className = "report-table";
-  const thead = document.createElement("thead");
-  const headRow = document.createElement("tr");
-  ["日付", "食事", "排便", "気分", "気になること・メモ", "検出"].forEach((labelText) => {
-    const th = document.createElement("th");
-    th.scope = "col";
-    th.textContent = labelText;
-    headRow.append(th);
-  });
-  thead.append(headRow);
-  const tbody = document.createElement("tbody");
-  report.records.forEach(({ dateKey, record, flags }) => {
-    const tr = document.createElement("tr");
-    if (flags.level === "alert") tr.className = "report-alert-row";
-    if (flags.level === "caution") tr.className = "report-caution-row";
-    [
-      formatDateLabel(dateKey),
-      record ? LABELS.meal[record.meal] : "記録なし",
-      record ? LABELS.poop[record.poop] : "記録なし",
-      record ? LABELS.mood[record.mood] : "記録なし",
-      record ? joinNonEmpty([formatConcerns(record.concerns), record.memo]) : "記録なし",
-      record ? (flags.reasons.join(" / ") || "通常") : "未入力",
-    ].forEach((cellText) => {
-      const td = document.createElement("td");
-      td.textContent = cellText;
-      tr.append(td);
-    });
-    tbody.append(tr);
-  });
-  table.append(thead, tbody);
-
-  const note = document.createElement("p");
-  note.className = "print-note";
-  note.textContent = "注記: このレポートは診断ではなく、受診時の説明補助です。気になる症状がある場合は獣医師に相談してください。";
-
-  els.reportPreview.append(printTitle, summary, table, note);
-}
-
-function recentDateKeys(days) {
-  const keys = [];
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  for (let index = days - 1; index >= 0; index -= 1) {
-    const date = new Date(start);
-    date.setDate(start.getDate() - index);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    keys.push(`${year}-${month}-${day}`);
-  }
-  return keys;
-}
-
-function getFlaggedRecords(petId, days, baseline) {
-  const keys = recentDateKeys(days);
-  const items = keys.map((dateKey) => ({
-    dateKey,
-    record: getDailyRecord(petId, dateKey),
-    flags: { level: "none", reasons: [] },
-  }));
-  items.forEach((item, index) => {
-    if (!item.record) return;
-    const previousRecords = items
-      .slice(0, index)
-      .map((previous) => previous.record)
-      .filter(Boolean);
-    item.flags = detectRecordFlags(item.record, previousRecords, baseline);
-  });
-  return items;
-}
-
-function buildVetReport(petId, options = {}) {
-  const days = options.days || 14;
-  const profile = readJSON(profileKey(petId), null);
-  const records = getFlaggedRecords(petId, days, profile?.baseline || {});
-  const recorded = records.filter((item) => item.record);
-  const concernCounts = {};
-  recorded.forEach(({ record }) => {
-    record.concerns.forEach((concern) => {
-      concernCounts[concern] = (concernCounts[concern] || 0) + 1;
-    });
-  });
-  const topConcernEntry = Object.entries(concernCounts).sort((a, b) => b[1] - a[1])[0];
-  const firstFlag = records.find((item) => item.flags.level === "alert" || item.flags.level === "caution");
-  const firstDate = records[0]?.dateKey || todayKey();
-  const lastDate = records.at(-1)?.dateKey || todayKey();
-  return {
-    profile,
-    periodLabel: `${formatDateLabel(firstDate)}〜${formatDateLabel(lastDate)}`,
-    records,
-    summary: {
-      recordedDays: recorded.length,
-      mealDownDays: recorded.filter(({ record }) => ["less", "half", "none"].includes(record.meal)).length,
-      poopIssueDays: recorded.filter(({ record }) => ["less", "more", "diarrhea", "none"].includes(record.poop)).length,
-      moodDownDays: recorded.filter(({ record }) => ["sleepy", "grumpy", "weak"].includes(record.mood)).length,
-      topConcern: topConcernEntry ? `${LABELS.concerns[topConcernEntry[0]] || topConcernEntry[0]} ${topConcernEntry[1]}日` : "",
-      firstFlagLabel: firstFlag ? `${formatDateLabel(firstFlag.dateKey)} ${firstFlag.flags.reasons[0]}` : "",
-    },
-  };
-}
-
-function detectRecordFlags(record, previousRecords, baseline = {}) {
-  const reasons = [];
-  const cautions = [];
-  const allRecords = [...previousRecords, record];
-  const previous = previousRecords.at(-1);
-  const lastTwo = allRecords.slice(-2);
-  const lastThree = allRecords.slice(-3);
-
-  if (record.meal === "half" || record.meal === "none") {
-    reasons.push(`食事が「${LABELS.meal[record.meal]}」です`);
-  }
-  if (lastTwo.length === 2 && lastTwo.every((item) => item.meal === "less")) {
-    reasons.push("食事が2日連続で少なめです");
-  }
-  if (baseline.meal && baseline.meal !== record.meal && record.meal === "less" && previous?.meal !== "less") {
-    cautions.push("普段の食事量より少なめです");
-  }
-
-  if (record.poop === "diarrhea" || record.poop === "none") {
-    reasons.push(`排便が「${LABELS.poop[record.poop]}」です`);
-  }
-  const poopShiftCount = lastThree.filter((item) => item.poop === "less" || item.poop === "more").length;
-  if (lastThree.length >= 2 && poopShiftCount >= 2) {
-    cautions.push("排便の少ない/多い日が直近3回中2回以上あります");
-  }
-
-  if (record.mood === "weak") {
-    reasons.push("気分が「ぐったり」です");
-  }
-  if (lastTwo.length === 2 && lastTwo.every((item) => item.mood === "sleepy" || item.mood === "grumpy")) {
-    cautions.push("眠い/不機嫌が2日連続しています");
-  }
-
-  const alertConcerns = ["vomit", "cough", "limp", "pee_issue"];
-  record.concerns
-    .filter((value) => alertConcerns.includes(value))
-    .forEach((value) => reasons.push(`気になることに「${LABELS.concerns[value]}」があります`));
-  const drinksMoreCount = allRecords.filter((item) => item.concerns.includes("drinks_more")).length;
-  if (record.concerns.includes("drinks_more") && drinksMoreCount >= 2) {
-    reasons.push("水をよく飲む記録が2日以上あります");
-  }
-
-  if (/(血|痛|震え|呼吸|ぐったり)/.test(record.memo || "")) {
-    cautions.push("メモに受診時確認したい言葉があります");
-  }
-
-  if (reasons.length > 0) {
-    return { level: "alert", reasons: [...reasons, ...cautions] };
-  }
-  if (cautions.length > 0) {
-    return { level: "caution", reasons: cautions };
-  }
-  return { level: "normal", reasons: [] };
-}
-
-function getDayStatusClass(record, flags) {
-  if (!record) return "is-empty";
-  if (flags.level === "alert") return "has-alert";
-  if (flags.level === "caution") return "has-caution";
-  return "has-record";
-}
-
-function getStatusText(record, flags) {
-  if (!record) return "記録なし";
-  if (flags.level === "alert") return "いつもと違う";
-  if (flags.level === "caution") return "注意";
-  return "記録済み";
-}
-
-function formatConcerns(values) {
-  if (!values || values.length === 0) return "なし";
-  return values.map((value) => LABELS.concerns[value] || value).join("、");
-}
-
-function joinNonEmpty(values) {
-  return values.filter((value) => value && value !== "なし").join(" / ") || "なし";
-}
-
-function appendDefinition(list, termText, detailText) {
-  const term = document.createElement("dt");
-  term.textContent = termText;
-  const detail = document.createElement("dd");
-  detail.textContent = detailText;
-  list.append(term, detail);
-}
-
-function appendStat(parent, labelText, valueText) {
-  const item = document.createElement("div");
-  item.className = "summary-item";
-  const label = document.createElement("span");
-  label.textContent = labelText;
-  const value = document.createElement("strong");
-  value.textContent = valueText;
-  item.append(label, value);
-  parent.append(item);
+function createExcerpt(text) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (normalized.length <= 72) return normalized;
+  return `${normalized.slice(0, 72)}...`;
 }
 
 function appendEmpty(parent, message) {
   const p = document.createElement("p");
   p.className = "empty-state";
-  p.textContent = message;
-  parent.append(p);
-}
-
-function appendMuted(parent, message) {
-  const p = document.createElement("p");
-  p.className = "muted";
   p.textContent = message;
   parent.append(p);
 }
@@ -678,6 +369,10 @@ function clearElement(element) {
 }
 
 function setStatus(message, type) {
-  els.saveStatus.textContent = message;
-  els.saveStatus.dataset.status = type;
+  els.statusMessage.textContent = message;
+  if (type) {
+    els.statusMessage.dataset.status = type;
+  } else {
+    delete els.statusMessage.dataset.status;
+  }
 }
