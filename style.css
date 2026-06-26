@@ -158,7 +158,7 @@ a {
 }
 
 .hero {
-  min-height: calc(100svh - 64px);
+  min-height: min(636px, calc(100svh - 64px));
   display: grid;
   align-items: center;
   background:
@@ -386,7 +386,53 @@ a {
 .app-shell {
   display: grid;
   gap: 18px;
-  padding: 10px 0 44px;
+  padding: 18px 0 44px;
+}
+
+.evidence-strip {
+  display: grid;
+  gap: 8px;
+  margin-top: -18px;
+  margin-bottom: 8px;
+}
+
+.evidence-item {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 118px) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  border: 1px solid rgba(36, 59, 83, 0.18);
+  border-radius: 4px;
+  padding: 10px 12px;
+  background: rgba(255, 253, 247, 0.78);
+  box-shadow: 0 10px 28px rgba(36, 59, 83, 0.05);
+}
+
+.evidence-item span {
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.evidence-item strong {
+  color: var(--navy);
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.evidence-item p {
+  margin: 0;
+  color: #526170;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.evidence-item.is-hot {
+  border-color: rgba(242, 184, 75, 0.8);
+  background: var(--yellow-soft);
 }
 
 .card {
@@ -797,6 +843,16 @@ legend {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .evidence-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .evidence-item {
+    grid-template-columns: 1fr;
+    align-content: start;
+    min-height: 126px;
+  }
+
   .settings-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -817,6 +873,10 @@ legend {
 
   .hero {
     min-height: auto;
+  }
+
+  .evidence-strip {
+    margin-top: 0;
   }
 
   .hero-visual {
@@ -848,7 +908,17 @@ legend {
   }
 
   .hero h1 {
-    font-size: 31px;
+    font-size: 29px;
+  }
+
+  .evidence-item {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 6px 10px;
+  }
+
+  .evidence-item p {
+    grid-column: 1 / -1;
+  }
   }
 
   .choice-button {
