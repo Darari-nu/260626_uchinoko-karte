@@ -337,7 +337,8 @@ label {
 
 .choice-button:hover,
 .choice-button:focus-visible,
-.choice-button[aria-pressed="true"] {
+.choice-button[aria-pressed="true"],
+.choice-button.is-selected {
   border-color: var(--teal);
   background: rgba(47, 143, 131, 0.1);
 }
@@ -371,12 +372,102 @@ label {
   gap: 8px;
 }
 
+.calendar-day {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.calendar-day[aria-current="date"] {
+  border-color: var(--teal);
+  box-shadow: inset 4px 0 0 var(--teal);
+}
+
+.calendar-day.is-empty {
+  color: var(--muted);
+}
+
+.calendar-status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: #F3EEE6;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.calendar-day.has-record .calendar-status {
+  background: rgba(47, 143, 131, 0.12);
+  color: var(--teal-deep);
+}
+
 .day-detail,
 .report-preview,
 .danger-zone {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 12px 0 0;
+}
+
+.detail-list dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.detail-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.summary-list {
+  display: grid;
+  gap: 10px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fffdf8;
+}
+
+.summary-item strong {
+  color: var(--teal-deep);
+}
+
+.status-text[data-status="success"] {
+  border-color: rgba(47, 143, 131, 0.35);
+  background: rgba(47, 143, 131, 0.08);
+  color: var(--teal-deep);
+}
+
+.status-text[data-status="warning"] {
+  border-color: rgba(217, 144, 37, 0.45);
+  background: rgba(217, 144, 37, 0.1);
+  color: #7B4B08;
 }
 
 .report-section {
