@@ -3,6 +3,7 @@ const MAX_HISTORY = 5;
 
 const answers = {
   startedAt: "",
+  startedDate: "",
   frequency: "",
   symptoms: [],
   otherSymptom: "",
@@ -18,15 +19,29 @@ const COPY_OPTIONS = {
     },
     yesterday: {
       label: "昨日から",
-      lead: "昨日ごろから",
+      lead: "昨日から",
     },
     fewDays: {
       label: "2〜3日前から",
       lead: "2〜3日前から",
+      aliases: ["3日くらい前から"],
     },
-    weekPlus: {
-      label: "1週間以上前から",
-      lead: "1週間以上前から",
+    week: {
+      label: "1週間前から",
+      lead: "1週間前から",
+      aliases: ["weekPlus", "1週間以上前から", "1週間くらい前から"],
+    },
+    twoWeeks: {
+      label: "2週間前から",
+      lead: "2週間前から",
+    },
+    month: {
+      label: "1か月前から",
+      lead: "1か月前から",
+    },
+    longAgo: {
+      label: "それ以上前から",
+      lead: "それ以上前から",
     },
     unknown: {
       label: "わからない",
@@ -34,21 +49,29 @@ const COPY_OPTIONS = {
     },
   },
   frequency: {
-    once: {
-      label: "一度だけ",
-      sentence: "気になる様子は一度だけ見られました。",
+    always: {
+      label: "常にある",
+      sentence: "気になる様子は常に見られます。",
+      aliases: ["repeated", "何度も繰り返す"],
+    },
+    fewTimesDay: {
+      label: "1日に数回",
+      sentence: "気になる様子は1日に数回見られます。",
+    },
+    dailyOnce: {
+      label: "1日に1回程度",
+      sentence: "気になる様子は1日に1回程度見られます。",
+      aliases: ["daily", "毎日"],
     },
     sometimes: {
-      label: "ときどき",
-      sentence: "気になる様子はときどき見られます。",
+      label: "時々ある",
+      sentence: "気になる様子は時々見られます。",
+      aliases: ["ときどき"],
     },
-    daily: {
-      label: "毎日",
-      sentence: "気になる様子は毎日見られます。",
-    },
-    repeated: {
-      label: "何度も繰り返す",
-      sentence: "同じような様子が何度も繰り返し見られます。",
+    occasionally: {
+      label: "たまにある",
+      sentence: "気になる様子はたまに見られます。",
+      aliases: ["once", "一度だけ"],
     },
     gettingWorse: {
       label: "だんだん悪くなっている",
@@ -60,13 +83,27 @@ const COPY_OPTIONS = {
       label: "食欲がない",
       noun: "食欲の低下",
     },
+    eatMore: {
+      label: "食べすぎる",
+      noun: "食べすぎる様子",
+    },
     drinksMore: {
-      label: "水をよく飲む",
+      label: "水を飲む量が増えた",
       noun: "飲水量の増加",
+      aliases: ["水をよく飲む"],
+    },
+    drinksLess: {
+      label: "水を飲む量が減った",
+      noun: "飲水量の低下",
     },
     vomit: {
-      label: "吐いた",
+      label: "吐く",
       noun: "嘔吐",
+      aliases: ["吐いた"],
+    },
+    nausea: {
+      label: "吐き気がある（えづく）",
+      noun: "吐き気やえづき",
     },
     diarrhea: {
       label: "下痢",
@@ -76,25 +113,73 @@ const COPY_OPTIONS = {
       label: "便秘",
       noun: "便秘",
     },
+    bloodyStool: {
+      label: "血便",
+      noun: "血便",
+    },
     lowEnergy: {
       label: "元気がない",
       noun: "元気のなさ",
     },
-    coughSneeze: {
-      label: "咳・くしゃみ",
-      noun: "咳やくしゃみ",
+    lethargic: {
+      label: "ぐったりしている",
+      noun: "ぐったりしている様子",
     },
-    itchy: {
-      label: "かゆがる",
-      noun: "かゆがる様子",
+    sleepsMore: {
+      label: "よく寝る",
+      noun: "よく寝る様子",
+    },
+    restless: {
+      label: "落ち着きがない",
+      noun: "落ち着きのなさ",
+    },
+    trembling: {
+      label: "震える",
+      noun: "震え",
     },
     limp: {
       label: "歩き方がおかしい",
       noun: "歩き方の違和感",
     },
+    hiding: {
+      label: "隠れていることが多い",
+      noun: "隠れていることが多い様子",
+    },
+    cough: {
+      label: "咳をする",
+      noun: "咳",
+      aliases: ["coughSneeze", "咳・くしゃみ", "くしゃみ・咳"],
+    },
+    sneeze: {
+      label: "くしゃみ",
+      noun: "くしゃみ",
+    },
+    eyeTear: {
+      label: "目ヤニ・涙が多い",
+      noun: "目やにや涙の増加",
+      aliases: ["目ヤニ・涙"],
+    },
+    itchy: {
+      label: "かゆがる",
+      noun: "かゆがる様子",
+      aliases: ["体をかく"],
+    },
+    hairLoss: {
+      label: "脱毛",
+      noun: "脱毛",
+    },
+    badBreath: {
+      label: "口臭が気になる",
+      noun: "口臭",
+    },
+    earIssue: {
+      label: "耳を気にする",
+      noun: "耳を気にする様子",
+    },
     peeIssue: {
-      label: "排尿がおかしい",
+      label: "尿の様子が変",
       noun: "排尿の変化",
+      aliases: ["排尿がおかしい"],
     },
     other: {
       label: "その他",
@@ -102,25 +187,31 @@ const COPY_OPTIONS = {
     },
   },
   changeAfterVisit: {
-    better: {
-      label: "良くなった",
-      sentence: "前回の受診後より、良くなっているように感じます。",
+    worse: {
+      label: "悪化している",
+      sentence: "前回の受診後より、悪くなっているように感じます。",
+      aliases: ["悪くなった"],
     },
     same: {
       label: "変わらない",
       sentence: "前回の受診後から、大きくは変わっていないように感じます。",
     },
-    worse: {
-      label: "悪くなった",
-      sentence: "前回の受診後より、悪くなっているように感じます。",
+    better: {
+      label: "良くなっている",
+      sentence: "前回の受診後より、良くなっているように感じます。",
+      aliases: ["良くなった"],
+    },
+    unknown: {
+      label: "わからない",
+      sentence: "前回受診時との比較ははっきりわかりません。",
     },
     newSymptom: {
       label: "別の症状が出た",
       sentence: "前回の受診後に、別の症状も出ています。",
     },
     noPrevious: {
-      label: "前回受診していない / 覚えていない",
-      sentence: "前回受診との比較ははっきりわかりません。",
+      label: "前回受診していない",
+      sentence: "前回受診との比較はありません。",
       aliases: ["前回受診していない / 覚えていない"],
     },
   },
@@ -142,10 +233,19 @@ function cacheElements() {
   els.statusMessage = document.querySelector("#status-message");
   els.copyButton = document.querySelector("#copy-button");
   els.saveButton = document.querySelector("#save-button");
+  els.printButton = document.querySelector("#print-button");
   els.historyList = document.querySelector("#history-list");
   els.otherSymptomField = document.querySelector("#other-symptom-field");
   els.otherSymptom = document.querySelector("#other-symptom");
   els.note = document.querySelector("#note");
+  els.noteCount = document.querySelector("#note-count");
+  els.startedDate = document.querySelector("#started-date");
+  els.createdDate = document.querySelector("#created-date");
+  els.previewStarted = document.querySelector("#preview-started");
+  els.previewFrequency = document.querySelector("#preview-frequency");
+  els.previewSymptoms = document.querySelector("#preview-symptoms");
+  els.previewChange = document.querySelector("#preview-change");
+  els.previewNote = document.querySelector("#preview-note");
   els.stepCount = document.querySelector("#step-count");
   els.stepLabel = document.querySelector("#step-label");
   els.stepDots = document.querySelectorAll(".step-dot");
@@ -164,24 +264,34 @@ function bindChoices() {
 }
 
 function bindInputs() {
-  els.otherSymptom.addEventListener("input", () => {
+  els.otherSymptom?.addEventListener("input", () => {
     answers.otherSymptom = els.otherSymptom.value.trim();
     renderGeneratedText();
   });
 
-  els.note.addEventListener("input", () => {
+  els.note?.addEventListener("input", () => {
     answers.note = els.note.value.trim();
+    renderGeneratedText();
+  });
+
+  els.startedDate?.addEventListener("input", () => {
+    answers.startedDate = els.startedDate.value;
+    renderProgress();
     renderGeneratedText();
   });
 }
 
 function bindActions() {
-  els.copyButton.addEventListener("click", () => {
+  els.copyButton?.addEventListener("click", () => {
     copyText(getGeneratedText());
   });
 
-  els.saveButton.addEventListener("click", () => {
+  els.saveButton?.addEventListener("click", () => {
     saveCurrentMemo();
+  });
+
+  els.printButton?.addEventListener("click", () => {
+    window.print();
   });
 }
 
@@ -194,7 +304,7 @@ function updateAnswer(question, type, value) {
       : [...currentValues, normalizedValue];
     if (normalizedValue === "other" && !answers[question].includes("other")) {
       answers.otherSymptom = "";
-      els.otherSymptom.value = "";
+      if (els.otherSymptom) els.otherSymptom.value = "";
     }
     return;
   }
@@ -229,22 +339,49 @@ function renderChoices() {
 
 function renderOtherSymptomField() {
   const shouldShow = normalizeAnswerList("symptoms", answers.symptoms).includes("other");
+  if (!els.otherSymptomField) return;
   els.otherSymptomField.hidden = !shouldShow;
   if (!shouldShow) {
     answers.otherSymptom = "";
-    els.otherSymptom.value = "";
+    if (els.otherSymptom) els.otherSymptom.value = "";
   }
 }
 
 function renderGeneratedText() {
   const text = getGeneratedText();
-  clearElement(els.generatedText);
-  els.generatedText.classList.toggle("is-empty", !text);
-  els.generatedText.textContent = text || "選んだ内容から、獣医さんにそのまま伝えやすい文章を作ります。";
+  if (els.generatedText) {
+    clearElement(els.generatedText);
+    els.generatedText.classList.toggle("is-empty", !text);
+    els.generatedText.textContent = text || "選んだ内容から、獣医さんにそのまま伝えやすい文章を作ります。";
+  }
+
+  renderPreviewFields(text);
+  renderNoteCount();
+
   if (text) {
-    setStatus("文章をコピーまたは保存できます。", "success");
+    setStatus("この内容でメモを作成しました", "success");
   } else {
     setStatus("未選択の項目があります。", "");
+  }
+}
+
+function renderPreviewFields() {
+  setText(els.previewStarted, formatStartedPreview());
+  setText(els.previewFrequency, getOption("frequency", answers.frequency)?.label || "未選択");
+  setText(els.previewSymptoms, formatSymptomPreview());
+  setText(els.previewChange, getOption("changeAfterVisit", answers.changeAfterVisit)?.label || "未選択");
+  setText(els.previewNote, answers.note || "未入力");
+
+  if (els.createdDate) {
+    const now = new Date();
+    els.createdDate.textContent = `作成日：${formatDateSlash(now)}`;
+    els.createdDate.dateTime = now.toISOString();
+  }
+}
+
+function renderNoteCount() {
+  if (els.noteCount) {
+    els.noteCount.textContent = String(answers.note.length);
   }
 }
 
@@ -265,7 +402,7 @@ function renderProgress() {
 
 function getCompletedSteps() {
   const completed = [];
-  if (normalizeAnswerValue("startedAt", answers.startedAt)) completed.push("startedAt");
+  if (normalizeAnswerValue("startedAt", answers.startedAt) || answers.startedDate) completed.push("startedAt");
   if (normalizeAnswerList("symptoms", answers.symptoms).length > 0) completed.push("symptoms");
   if (normalizeAnswerValue("frequency", answers.frequency)) completed.push("frequency");
   if (normalizeAnswerValue("changeAfterVisit", answers.changeAfterVisit) || answers.note) {
@@ -276,15 +413,15 @@ function getCompletedSteps() {
 
 function getGeneratedText() {
   const lines = [];
-  const startedAt = getOption("startedAt", answers.startedAt);
+  const startedLead = getStartedLead();
   const frequency = getOption("frequency", answers.frequency);
   const changeAfterVisit = getOption("changeAfterVisit", answers.changeAfterVisit);
   const symptoms = getSymptomList();
 
-  if (startedAt && symptoms) {
-    lines.push(`${startedAt.lead}、${symptoms}が気になっています。`);
-  } else if (startedAt) {
-    lines.push(`${startedAt.lead}、気になる様子があります。`);
+  if (startedLead && symptoms) {
+    lines.push(`${startedLead}、${symptoms}が気になっています。`);
+  } else if (startedLead) {
+    lines.push(`${startedLead}、気になる様子があります。`);
   } else if (symptoms) {
     lines.push(`${symptoms}が気になっています。`);
   }
@@ -301,7 +438,28 @@ function getGeneratedText() {
     lines.push(formatNoteSentence(answers.note));
   }
 
+  if (lines.length > 0) {
+    lines.push("よろしくお願いいたします。");
+  }
+
   return lines.join("\n");
+}
+
+function getStartedLead() {
+  if (answers.startedDate) {
+    return `${formatDateInput(answers.startedDate)}ごろから`;
+  }
+  return getOption("startedAt", answers.startedAt)?.lead || "";
+}
+
+function formatStartedPreview() {
+  const startedAt = getOption("startedAt", answers.startedAt);
+  const dateText = answers.startedDate ? formatDateInput(answers.startedDate) : "";
+
+  if (dateText && startedAt) return `${dateText}（${startedAt.label}）`;
+  if (dateText) return `${dateText}ごろから`;
+  if (startedAt) return startedAt.label;
+  return "未選択";
 }
 
 function getSymptomList() {
@@ -314,6 +472,20 @@ function getSymptomList() {
     })
     .filter(Boolean);
   return joinJapaneseList(symptoms);
+}
+
+function formatSymptomPreview() {
+  const symptoms = normalizeAnswerList("symptoms", answers.symptoms)
+    .map((symptom) => {
+      if (symptom === "other" && answers.otherSymptom) {
+        return formatOtherSymptomNoun(answers.otherSymptom);
+      }
+      return getOption("symptoms", symptom)?.label || "";
+    })
+    .filter(Boolean);
+
+  if (symptoms.length === 0) return "未選択";
+  return symptoms.map((symptom) => `・${symptom}`).join("\n");
 }
 
 async function copyText(text) {
@@ -368,6 +540,7 @@ function saveCurrentMemo() {
 }
 
 function renderHistory() {
+  if (!els.historyList) return;
   clearElement(els.historyList);
   const memos = readMemos();
   if (memos.length === 0) {
@@ -431,16 +604,18 @@ function openMemo(memo) {
   const normalizedAnswers = normalizeAnswers(memo.answers);
   Object.assign(answers, {
     startedAt: normalizedAnswers.startedAt,
+    startedDate: normalizedAnswers.startedDate,
     frequency: normalizedAnswers.frequency,
     symptoms: normalizedAnswers.symptoms,
     otherSymptom: normalizedAnswers.otherSymptom,
     changeAfterVisit: normalizedAnswers.changeAfterVisit,
     note: normalizedAnswers.note,
   });
-  els.otherSymptom.value = answers.otherSymptom;
-  els.note.value = answers.note;
+  if (els.startedDate) els.startedDate.value = answers.startedDate;
+  if (els.otherSymptom) els.otherSymptom.value = answers.otherSymptom;
+  if (els.note) els.note.value = answers.note;
   renderAll();
-  document.querySelector("#memo-output").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.querySelector("#memo-output")?.scrollIntoView({ behavior: "smooth", block: "start" });
   setStatus("保存済みメモを開きました。", "success");
 }
 
@@ -478,6 +653,7 @@ function cloneAnswers() {
   const normalizedAnswers = normalizeAnswers(answers);
   return {
     startedAt: normalizedAnswers.startedAt,
+    startedDate: normalizedAnswers.startedDate,
     frequency: normalizedAnswers.frequency,
     symptoms: [...normalizedAnswers.symptoms],
     otherSymptom: normalizedAnswers.otherSymptom,
@@ -489,6 +665,7 @@ function cloneAnswers() {
 function normalizeAnswers(source = {}) {
   return {
     startedAt: normalizeAnswerValue("startedAt", source.startedAt || ""),
+    startedDate: normalizeDateValue(source.startedDate || ""),
     frequency: normalizeAnswerValue("frequency", source.frequency || ""),
     symptoms: normalizeAnswerList("symptoms", source.symptoms),
     otherSymptom: String(source.otherSymptom || "").trim(),
@@ -513,6 +690,11 @@ function normalizeAnswerValue(question, value) {
     option.label === value || option.aliases?.includes(value)
   ));
   return found ? found[0] : "";
+}
+
+function normalizeDateValue(value) {
+  const text = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
 }
 
 function getOption(question, value) {
@@ -541,6 +723,20 @@ function formatOtherSymptomNoun(value) {
     return `${cleanValue}様子`;
   }
   return cleanValue;
+}
+
+function formatDateInput(value) {
+  const [year, month, day] = String(value || "").split("-");
+  if (!year || !month || !day) return "";
+  return `${year}/${month}/${day}`;
+}
+
+function formatDateSlash(date) {
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 function createId() {
@@ -575,13 +771,21 @@ function appendEmpty(parent, message) {
   parent.append(p);
 }
 
+function setText(element, value) {
+  if (element) {
+    element.textContent = value;
+  }
+}
+
 function clearElement(element) {
+  if (!element) return;
   while (element.firstChild) {
     element.removeChild(element.firstChild);
   }
 }
 
 function setStatus(message, type) {
+  if (!els.statusMessage) return;
   els.statusMessage.textContent = message;
   if (type) {
     els.statusMessage.dataset.status = type;
