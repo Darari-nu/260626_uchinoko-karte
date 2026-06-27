@@ -18,15 +18,7 @@
 
   <header class="site-header">
     <div class="brand-lockup" aria-label="うちの子カルテ">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 72 40" role="img">
-          <path d="M15 12c-5 0-9 5-9 11 0 7 5 11 11 11 7 0 11-5 11-12 0-6-5-10-13-10Z" fill="none" stroke="currentColor" stroke-width="2.6"/>
-          <path d="M9 13 5 6M22 13l4-7M14 23h.1M21 23h.1M14 29c3 2 6 2 9 0" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
-          <path d="M51 12c-6 0-11 5-11 11 0 7 5 11 12 11s12-4 12-11c0-6-5-11-13-11Z" fill="none" stroke="currentColor" stroke-width="2.6"/>
-          <path d="M44 13 39 7M59 13l5-6M49 23h.1M56 23h.1M50 29c2 1 4 1 6 0" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
-        </svg>
-      </span>
-      <span class="brand-text">うちの子カルテ</span>
+      <img class="brand-logo" src="assets/brand-logo.png" alt="うちの子カルテ">
     </div>
 
     <p class="header-copy">症状や変化をタップするだけで、<br>動物病院に伝えやすいメモが作れます</p>
@@ -100,35 +92,10 @@
           </div>
         </fieldset>
 
-        <fieldset class="question-section">
-          <legend class="visually-hidden">頻度</legend>
-          <div class="section-rail" aria-hidden="true">
-            <span class="step-number">2</span>
-            <strong>頻度</strong>
-            <span class="rail-icon">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>
-            </span>
-          </div>
-          <div class="section-content">
-            <div class="section-title-row">
-              <h2>頻度</h2>
-              <span class="required-badge">必須</span>
-            </div>
-            <div class="choice-grid frequency-grid" data-question="frequency" data-type="single">
-              <button type="button" class="choice-button" data-value="always">常にある</button>
-              <button type="button" class="choice-button" data-value="fewTimesDay">1日に数回</button>
-              <button type="button" class="choice-button" data-value="dailyOnce">1日に1回程度</button>
-              <button type="button" class="choice-button" data-value="sometimes">時々ある</button>
-              <button type="button" class="choice-button" data-value="occasionally">たまにある</button>
-            </div>
-            <p class="info-tip"><span class="tip-icon" aria-hidden="true">i</span><span class="tip-text">症状が出ていない日があっても、「時々ある」「たまにある」を選んでください</span></p>
-          </div>
-        </fieldset>
-
         <fieldset class="question-section symptom-section">
           <legend class="visually-hidden">気になる症状</legend>
           <div class="section-rail" aria-hidden="true">
-            <span class="step-number">3</span>
+            <span class="step-number">2</span>
             <strong>気になる症状</strong>
             <span class="rail-icon">
               <svg viewBox="0 0 24 24"><path d="M3 13h4l2-6 4 12 2-6h6"/></svg>
@@ -218,6 +185,31 @@
         </fieldset>
 
         <fieldset class="question-section">
+          <legend class="visually-hidden">頻度</legend>
+          <div class="section-rail" aria-hidden="true">
+            <span class="step-number">3</span>
+            <strong>頻度</strong>
+            <span class="rail-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>
+            </span>
+          </div>
+          <div class="section-content">
+            <div class="section-title-row">
+              <h2>頻度</h2>
+              <span class="required-badge">必須</span>
+            </div>
+            <div class="choice-grid frequency-grid" data-question="frequency" data-type="single">
+              <button type="button" class="choice-button" data-value="always">常にある</button>
+              <button type="button" class="choice-button" data-value="fewTimesDay">1日に数回</button>
+              <button type="button" class="choice-button" data-value="dailyOnce">1日に1回程度</button>
+              <button type="button" class="choice-button" data-value="sometimes">時々ある</button>
+              <button type="button" class="choice-button" data-value="occasionally">たまにある</button>
+            </div>
+            <p class="info-tip"><span class="tip-icon" aria-hidden="true">i</span><span class="tip-text">症状が出ていない日があっても、「時々ある」「たまにある」を選んでください</span></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-section">
           <legend class="visually-hidden">前回からの変化</legend>
           <div class="section-rail" aria-hidden="true">
             <span class="step-number">4</span>
@@ -257,7 +249,12 @@
 
         <section class="pet-info" aria-label="ペット情報">
           <div class="pet-avatar" aria-hidden="true">
-            <svg viewBox="0 0 56 56"><path d="M13 22 7 11M43 22l6-11M28 14c-12 0-20 8-20 19 0 10 8 17 20 17s20-7 20-17c0-11-8-19-20-19Z" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M21 31h.1M35 31h.1M23 39c3 2 7 2 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 72 48">
+              <path d="M16 13c-6 0-11 5-11 13 0 9 6 15 14 15 9 0 14-6 14-15 0-8-6-13-17-13Z"/>
+              <path d="M9 14 5 7M28 14l4-7M15 26h.1M24 26h.1M17 33c3 2 6 2 9 0"/>
+              <path d="M51 14c-7 0-12 5-12 13s6 14 14 14 14-5 14-14-6-13-16-13Z"/>
+              <path d="M43 15 38 8M61 15l5-7M49 27h.1M58 27h.1M50 34c3 1 5 1 8 0"/>
+            </svg>
           </div>
           <div class="pet-fields">
             <p><strong>名前：</strong>うちの子</p>
@@ -273,12 +270,12 @@
             <p id="preview-started">未選択</p>
           </article>
           <article class="summary-row">
-            <h3><span aria-hidden="true">◷</span>頻度</h3>
-            <p id="preview-frequency">未選択</p>
-          </article>
-          <article class="summary-row">
             <h3><span aria-hidden="true">⌁</span>気になる症状</h3>
             <p id="preview-symptoms">未選択</p>
+          </article>
+          <article class="summary-row">
+            <h3><span aria-hidden="true">◷</span>頻度</h3>
+            <p id="preview-frequency">未選択</p>
           </article>
           <article class="summary-row">
             <h3><span aria-hidden="true">↗</span>前回からの変化</h3>

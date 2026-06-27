@@ -51,31 +51,31 @@ const COPY_OPTIONS = {
   frequency: {
     always: {
       label: "常にある",
-      sentence: "気になる様子は常に見られます。",
+      sentence: "この気になる症状は常にあります。",
       aliases: ["repeated", "何度も繰り返す"],
     },
     fewTimesDay: {
       label: "1日に数回",
-      sentence: "気になる様子は1日に数回見られます。",
+      sentence: "この気になる症状は1日に数回あります。",
     },
     dailyOnce: {
       label: "1日に1回程度",
-      sentence: "気になる様子は1日に1回程度見られます。",
+      sentence: "この気になる症状は1日に1回程度あります。",
       aliases: ["daily", "毎日"],
     },
     sometimes: {
       label: "時々ある",
-      sentence: "気になる様子は時々見られます。",
+      sentence: "この気になる症状は時々あります。",
       aliases: ["ときどき"],
     },
     occasionally: {
       label: "たまにある",
-      sentence: "気になる様子はたまに見られます。",
+      sentence: "この気になる症状はたまにあります。",
       aliases: ["once", "一度だけ"],
     },
     gettingWorse: {
       label: "だんだん悪くなっている",
-      sentence: "様子としては、だんだん悪くなっているように見えます。",
+      sentence: "この気になる症状は、だんだん悪くなっているように見えます。",
     },
   },
   symptoms: {
@@ -211,7 +211,7 @@ const COPY_OPTIONS = {
     },
     noPrevious: {
       label: "前回受診していない",
-      sentence: "前回受診との比較はありません。",
+      sentence: "",
       aliases: ["前回受診していない / 覚えていない"],
     },
   },
@@ -430,7 +430,7 @@ function getGeneratedText() {
     lines.push(frequency.sentence);
   }
 
-  if (changeAfterVisit) {
+  if (changeAfterVisit?.sentence) {
     lines.push(changeAfterVisit.sentence);
   }
 

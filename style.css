@@ -104,32 +104,16 @@ svg {
 .brand-lockup {
   display: flex;
   align-items: center;
-  gap: 16px;
   min-width: 0;
   color: var(--navy);
 }
 
-.brand-mark {
-  flex: 0 0 auto;
-  width: 72px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-}
-
-.brand-mark svg {
-  width: 72px;
-  height: 40px;
-  stroke-width: 2.4;
-}
-
-.brand-text {
+.brand-logo {
   display: block;
-  color: var(--navy);
-  font-size: clamp(28px, 2.6vw, 42px);
-  font-weight: 900;
-  line-height: 1.05;
-  white-space: nowrap;
+  width: clamp(280px, 25vw, 380px);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .header-copy {
@@ -226,9 +210,9 @@ svg {
 .input-column::before {
   content: "";
   position: absolute;
-  left: 46px;
-  top: 56px;
-  bottom: 128px;
+  left: 50px;
+  top: 40px;
+  bottom: 126px;
   width: 4px;
   border-radius: 999px;
   background: var(--navy);
@@ -249,7 +233,7 @@ fieldset {
 .question-section {
   display: grid;
   grid-template-columns: 142px minmax(0, 1fr);
-  gap: 34px;
+  gap: 26px;
   min-width: 0;
   border-bottom: 1px solid var(--line);
   padding: 12px 0 14px;
@@ -263,14 +247,18 @@ fieldset {
   position: relative;
   z-index: 1;
   display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-rows: auto auto;
   align-content: start;
-  justify-items: center;
-  gap: 10px;
+  justify-items: start;
+  align-items: start;
+  gap: 8px 12px;
   color: var(--navy);
-  text-align: center;
+  text-align: left;
 }
 
 .step-number {
+  grid-row: 1 / span 2;
   width: 32px;
   height: 32px;
   display: grid;
@@ -284,7 +272,7 @@ fieldset {
 }
 
 .section-rail strong {
-  max-width: 7.5em;
+  max-width: 6.8em;
   color: var(--navy);
   font-size: 16px;
   font-weight: 900;
@@ -294,6 +282,7 @@ fieldset {
 .rail-icon {
   display: grid;
   place-items: center;
+  grid-column: 2;
   color: var(--navy);
   font-size: 28px;
 }
@@ -393,6 +382,7 @@ fieldset {
 }
 
 .choice-button {
+  position: relative;
   min-width: 0;
   width: 100%;
   min-height: 30px;
@@ -437,6 +427,7 @@ fieldset {
 .choice-button.is-selected,
 .choice-button[aria-pressed="true"] {
   border-color: var(--orange);
+  padding-left: 28px;
   background: var(--orange-soft);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px rgba(240, 162, 58, 0.22);
@@ -445,14 +436,18 @@ fieldset {
 .choice-button.is-selected::before,
 .choice-button[aria-pressed="true"]::before {
   content: "✓";
-  width: 18px;
-  height: 18px;
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
   background: var(--orange);
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   line-height: 1;
 }
@@ -712,8 +707,9 @@ textarea::placeholder {
 }
 
 .pet-avatar svg {
-  width: 54px;
-  height: 54px;
+  width: 60px;
+  height: 42px;
+  stroke-width: 2.4;
 }
 
 .pet-fields {
@@ -1070,21 +1066,11 @@ textarea::placeholder {
   }
 
   .brand-lockup {
-    gap: 10px;
+    width: 100%;
   }
 
-  .brand-mark {
-    width: 52px;
-    height: 30px;
-  }
-
-  .brand-mark svg {
-    width: 52px;
-    height: 30px;
-  }
-
-  .brand-text {
-    font-size: 27px;
+  .brand-logo {
+    width: min(100%, 320px);
   }
 
   .journey {
@@ -1129,11 +1115,16 @@ textarea::placeholder {
     text-align: left;
   }
 
+  .step-number {
+    grid-row: auto;
+  }
+
   .section-rail strong {
     max-width: none;
   }
 
   .rail-icon {
+    grid-column: auto;
     justify-self: end;
     font-size: 26px;
   }
@@ -1222,8 +1213,8 @@ textarea::placeholder {
     overflow: hidden;
   }
 
-  .brand-text {
-    font-size: 24px;
+  .brand-logo {
+    width: min(100%, 272px);
   }
 
   .header-copy {
