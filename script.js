@@ -2,6 +2,12 @@ const STORAGE_KEY = "uchinoko_vet_memos";
 const MAX_HISTORY = 5;
 
 const answers = {
+  petName: "",
+  petSpecies: "",
+  petAge: "",
+  petPreviousVisit: "",
+  petAvatar: "dog",
+  petAvatarImage: "",
   startedAt: "",
   startedDate: "",
   frequency: "",
@@ -217,6 +223,27 @@ const COPY_OPTIONS = {
   },
 };
 
+const AVATAR_SVGS = {
+  dog: `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M20 23c-6 3-10 8-10 16 0 11 9 17 22 17s22-6 22-17c0-8-4-13-10-16"/>
+      <path d="M20 24c-5-7-13-8-15-2-2 7 3 15 10 17"/>
+      <path d="M44 24c5-7 13-8 15-2 2 7-3 15-10 17"/>
+      <path d="M25 36h.1M39 36h.1"/>
+      <path d="M32 40c-3 0-5 2-5 4s2 3 5 3 5-1 5-3-2-4-5-4Z"/>
+      <path d="M32 47v4M27 52c3 3 7 3 10 0"/>
+    </svg>
+  `,
+  cat: `
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M14 24 18 9l12 10h4L46 9l4 15c4 4 6 9 6 15 0 11-10 18-24 18S8 50 8 39c0-6 2-11 6-15Z"/>
+      <path d="M24 36h.1M40 36h.1"/>
+      <path d="M32 40v5M26 47c4 3 8 3 12 0"/>
+      <path d="M16 39H6M17 44H7M48 39h10M47 44h10"/>
+    </svg>
+  `,
+};
+
 const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -240,6 +267,14 @@ function cacheElements() {
   els.note = document.querySelector("#note");
   els.noteCount = document.querySelector("#note-count");
   els.startedDate = document.querySelector("#started-date");
+  els.petName = document.querySelector("#pet-name");
+  els.petSpecies = document.querySelector("#pet-species");
+  els.petAge = document.querySelector("#pet-age");
+  els.petPreviousVisit = document.querySelector("#pet-previous-visit");
+  els.petAvatar = document.querySelector("#pet-avatar");
+  els.petAvatarUpload = document.querySelector("#pet-avatar-upload");
+  els.avatarButtons = document.querySelectorAll("[data-avatar]");
+  els.previousVisitLabel = document.querySelector("#previous-visit-label");
   els.createdDate = document.querySelector("#created-date");
   els.previewStarted = document.querySelector("#preview-started");
   els.previewFrequency = document.querySelector("#preview-frequency");
@@ -279,6 +314,75 @@ function bindInputs() {
     renderProgress();
     renderGeneratedText();
   });
+
+  bindPetTextInput(els.petName, "petName");
+  bindPetTextInput(els.petAge, "petAge");
+
+  els.petSpecies?.addEventListener("change", () => {
+    answers.petSpecies = els.petSpecies.value.trim();
+    if (!answers.petAvatarImage && ["犬", "猫"].includes(answers.petSpecies)) {
+      answers.petAvatar = answers.petSpecies === "猫" ? "cat" : "dog";
+    }
+    renderPetInfo();
+  });
+
+  els.petPreviousVisit?.addEventListener("input", () => {
+    answers.petPreviousVisit = normalizeDateValue(els.petPreviousVisit.value);
+    renderPetInfo();
+  });
+
+  els.avatarButtons?.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextAvatar = button.dataset.avatar === "cat" ? "cat" : "dog";
+      const shouldSyncSpecies = !answers.petSpecies || ["犬", "猫"].includes(answers.petSpecies);
+      answers.petAvatar = nextAvatar;
+      if (shouldSyncSpecies) {
+        answers.petSpecies = nextAvatar === "cat" ? "猫" : "犬";
+      }
+      answers.petAvatarImage = "";
+      if (els.petAvatarUpload) els.petAvatarUpload.value = "";
+      renderPetInfo();
+    });
+  });
+
+  els.petAvatarUpload?.addEventListener("change", handleAvatarUpload);
+}
+
+function bindPetTextInput(element, key) {
+  element?.addEventListener("input", () => {
+    answers[key] = element.value.trim();
+    renderPetInfo();
+  });
+}
+
+function handleAvatarUpload(event) {
+  const input = event.currentTarget;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    input.value = "";
+    setStatus("画像ファイルを選んでください。", "warning");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    const imageData = String(reader.result || "");
+    if (!imageData.startsWith("data:image/")) {
+      setStatus("画像を読み込めませんでした。", "warning");
+      return;
+    }
+
+    answers.petAvatar = "upload";
+    answers.petAvatarImage = imageData;
+    renderPetInfo();
+    setStatus("ペット画像を反映しました。", "success");
+  });
+  reader.addEventListener("error", () => {
+    setStatus("画像を読み込めませんでした。", "warning");
+  });
+  reader.readAsDataURL(file);
 }
 
 function bindActions() {
@@ -317,6 +421,7 @@ function updateAnswer(question, type, value) {
 function renderAll() {
   renderChoices();
   renderOtherSymptomField();
+  renderPetInfo();
   renderProgress();
   renderGeneratedText();
   renderHistory();
@@ -345,6 +450,57 @@ function renderOtherSymptomField() {
     answers.otherSymptom = "";
     if (els.otherSymptom) els.otherSymptom.value = "";
   }
+}
+
+function renderPetInfo() {
+  syncInputValue(els.petName, answers.petName);
+  syncInputValue(els.petAge, answers.petAge);
+
+  if (els.petSpecies && els.petSpecies.value !== answers.petSpecies) {
+    els.petSpecies.value = answers.petSpecies;
+  }
+
+  if (els.petPreviousVisit && els.petPreviousVisit.value !== answers.petPreviousVisit) {
+    els.petPreviousVisit.value = answers.petPreviousVisit;
+  }
+
+  setText(
+    els.previousVisitLabel,
+    answers.petPreviousVisit ? formatDateInput(answers.petPreviousVisit) : "未入力",
+  );
+
+  renderPetAvatar();
+  renderAvatarControls();
+}
+
+function renderPetAvatar() {
+  if (!els.petAvatar) return;
+  clearElement(els.petAvatar);
+  els.petAvatar.classList.toggle("has-image", Boolean(answers.petAvatarImage));
+
+  if (answers.petAvatarImage) {
+    const image = document.createElement("img");
+    image.src = answers.petAvatarImage;
+    image.alt = "アップロードしたペットの画像";
+    els.petAvatar.setAttribute("aria-label", "アップロードしたペットの画像");
+    els.petAvatar.append(image);
+    return;
+  }
+
+  const avatarType = answers.petAvatar === "cat" ? "cat" : "dog";
+  els.petAvatar.setAttribute("aria-label", avatarType === "cat" ? "猫のアイコン" : "犬のアイコン");
+  els.petAvatar.innerHTML = AVATAR_SVGS[avatarType];
+}
+
+function renderAvatarControls() {
+  els.avatarButtons?.forEach((button) => {
+    const selected = !answers.petAvatarImage && answers.petAvatar === button.dataset.avatar;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
+
+  const uploadControl = els.petAvatarUpload?.closest(".avatar-upload");
+  uploadControl?.classList.toggle("is-active", Boolean(answers.petAvatarImage));
 }
 
 function renderGeneratedText() {
@@ -534,7 +690,7 @@ function saveCurrentMemo() {
     generatedText,
   };
   const memos = [memo, ...readMemos()].slice(0, MAX_HISTORY);
-  writeMemos(memos);
+  if (!writeMemos(memos)) return;
   setStatus("メモを保存しました。", "success");
   renderHistory();
 }
@@ -603,6 +759,12 @@ function createHistoryButton(label, style, onClick) {
 function openMemo(memo) {
   const normalizedAnswers = normalizeAnswers(memo.answers);
   Object.assign(answers, {
+    petName: normalizedAnswers.petName,
+    petSpecies: normalizedAnswers.petSpecies,
+    petAge: normalizedAnswers.petAge,
+    petPreviousVisit: normalizedAnswers.petPreviousVisit,
+    petAvatar: normalizedAnswers.petAvatar,
+    petAvatarImage: normalizedAnswers.petAvatarImage,
     startedAt: normalizedAnswers.startedAt,
     startedDate: normalizedAnswers.startedDate,
     frequency: normalizedAnswers.frequency,
@@ -611,6 +773,10 @@ function openMemo(memo) {
     changeAfterVisit: normalizedAnswers.changeAfterVisit,
     note: normalizedAnswers.note,
   });
+  if (els.petName) els.petName.value = answers.petName;
+  if (els.petSpecies) els.petSpecies.value = answers.petSpecies;
+  if (els.petAge) els.petAge.value = answers.petAge;
+  if (els.petPreviousVisit) els.petPreviousVisit.value = answers.petPreviousVisit;
   if (els.startedDate) els.startedDate.value = answers.startedDate;
   if (els.otherSymptom) els.otherSymptom.value = answers.otherSymptom;
   if (els.note) els.note.value = answers.note;
@@ -623,13 +789,13 @@ function updateVisitFlag(id, isVisit) {
   const memos = readMemos().map((memo) => (
     memo.id === id ? { ...memo, isVisit } : memo
   ));
-  writeMemos(memos);
+  if (!writeMemos(memos)) return;
   renderHistory();
 }
 
 function deleteMemo(id) {
   const memos = readMemos().filter((memo) => memo.id !== id);
-  writeMemos(memos);
+  if (!writeMemos(memos)) return;
   setStatus("メモを削除しました。", "success");
   renderHistory();
 }
@@ -646,12 +812,25 @@ function readMemos() {
 }
 
 function writeMemos(memos) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(memos.slice(0, MAX_HISTORY)));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(memos.slice(0, MAX_HISTORY)));
+    return true;
+  } catch (error) {
+    console.warn(`Failed to write localStorage key: ${STORAGE_KEY}`, error);
+    setStatus("保存できませんでした。画像が大きい場合は小さい画像に変更してください。", "warning");
+    return false;
+  }
 }
 
 function cloneAnswers() {
   const normalizedAnswers = normalizeAnswers(answers);
   return {
+    petName: normalizedAnswers.petName,
+    petSpecies: normalizedAnswers.petSpecies,
+    petAge: normalizedAnswers.petAge,
+    petPreviousVisit: normalizedAnswers.petPreviousVisit,
+    petAvatar: normalizedAnswers.petAvatar,
+    petAvatarImage: normalizedAnswers.petAvatarImage,
     startedAt: normalizedAnswers.startedAt,
     startedDate: normalizedAnswers.startedDate,
     frequency: normalizedAnswers.frequency,
@@ -663,7 +842,14 @@ function cloneAnswers() {
 }
 
 function normalizeAnswers(source = {}) {
+  const petAvatarImage = normalizeImageData(source.petAvatarImage || "");
   return {
+    petName: String(source.petName || "").trim(),
+    petSpecies: String(source.petSpecies || "").trim(),
+    petAge: String(source.petAge || "").trim(),
+    petPreviousVisit: normalizeDateValue(source.petPreviousVisit || ""),
+    petAvatar: normalizePetAvatar(source.petAvatar || "", petAvatarImage),
+    petAvatarImage,
     startedAt: normalizeAnswerValue("startedAt", source.startedAt || ""),
     startedDate: normalizeDateValue(source.startedDate || ""),
     frequency: normalizeAnswerValue("frequency", source.frequency || ""),
@@ -690,6 +876,16 @@ function normalizeAnswerValue(question, value) {
     option.label === value || option.aliases?.includes(value)
   ));
   return found ? found[0] : "";
+}
+
+function normalizePetAvatar(value, imageData) {
+  if (imageData) return "upload";
+  return value === "cat" ? "cat" : "dog";
+}
+
+function normalizeImageData(value) {
+  const text = String(value || "").trim();
+  return text.startsWith("data:image/") ? text : "";
 }
 
 function normalizeDateValue(value) {
@@ -775,6 +971,11 @@ function setText(element, value) {
   if (element) {
     element.textContent = value;
   }
+}
+
+function syncInputValue(element, value) {
+  if (!element || document.activeElement === element || element.value === value) return;
+  element.value = value;
 }
 
 function clearElement(element) {

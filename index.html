@@ -220,7 +220,7 @@
           </div>
           <div class="section-content">
             <div class="section-title-row visit-row">
-              <h2>前回の受診時期：<span>未入力</span></h2>
+              <h2>前回の受診時期：<span id="previous-visit-label">未入力</span></h2>
               <span class="optional-badge">任意</span>
             </div>
             <div class="choice-grid change-grid" data-question="changeAfterVisit" data-type="single">
@@ -248,21 +248,49 @@
         </div>
 
         <section class="pet-info" aria-label="ペット情報">
-          <div class="pet-avatar" aria-hidden="true">
-            <svg viewBox="0 0 72 48">
-              <path d="M16 13c-6 0-11 5-11 13 0 9 6 15 14 15 9 0 14-6 14-15 0-8-6-13-17-13Z"/>
-              <path d="M9 14 5 7M28 14l4-7M15 26h.1M24 26h.1M17 33c3 2 6 2 9 0"/>
-              <path d="M51 14c-7 0-12 5-12 13s6 14 14 14 14-5 14-14-6-13-16-13Z"/>
-              <path d="M43 15 38 8M61 15l5-7M49 27h.1M58 27h.1M50 34c3 1 5 1 8 0"/>
-            </svg>
+          <div class="pet-avatar-control">
+            <div class="pet-avatar" id="pet-avatar" role="img" aria-label="ペットアイコン"></div>
+            <div class="avatar-actions" role="group" aria-label="ペットアイコンを選択">
+              <button type="button" class="avatar-button is-active" data-avatar="dog" aria-pressed="true">犬</button>
+              <button type="button" class="avatar-button" data-avatar="cat" aria-pressed="false">猫</button>
+              <label class="avatar-upload" for="pet-avatar-upload">
+                画像
+                <input id="pet-avatar-upload" type="file" accept="image/*">
+              </label>
+            </div>
           </div>
           <div class="pet-fields">
-            <p><strong>名前：</strong>うちの子</p>
-            <p><strong>種類：</strong>犬・猫など</p>
-            <p><strong>年齢：</strong>未入力</p>
-            <p><strong>前回受診日：</strong>未入力</p>
+            <label>
+              <span>名前</span>
+              <input id="pet-name" name="petName" maxlength="24" autocomplete="off" placeholder="うちの子">
+            </label>
+            <label>
+              <span>種類</span>
+              <select id="pet-species" name="petSpecies">
+                <option value="">犬・猫など</option>
+                <option value="犬">犬</option>
+                <option value="猫">猫</option>
+                <option value="うさぎ">うさぎ</option>
+                <option value="鳥">鳥</option>
+                <option value="ハムスター">ハムスター</option>
+                <option value="その他">その他</option>
+              </select>
+            </label>
+            <label>
+              <span>年齢</span>
+              <input id="pet-age" name="petAge" maxlength="18" autocomplete="off" placeholder="未入力">
+            </label>
+            <label>
+              <span>前回受診日</span>
+              <input id="pet-previous-visit" name="petPreviousVisit" type="date">
+            </label>
           </div>
         </section>
+
+        <div class="generated-block">
+          <h3>このまま伝えればOK</h3>
+          <div id="generated-text" class="generated-text" aria-live="polite"></div>
+        </div>
 
         <div class="summary-box">
           <article class="summary-row">
@@ -287,13 +315,8 @@
           </article>
         </div>
 
-        <div class="generated-block">
-          <h3>このまま伝えればOK</h3>
-          <div id="generated-text" class="generated-text" aria-live="polite"></div>
-        </div>
-
         <p class="medical-note">※ このメモは診断ではなく、受診時の参考としてご利用ください。</p>
-        <p class="paper-brand">うちの子動物病院 <span aria-hidden="true">♧</span></p>
+        <p class="paper-brand">うちの子カルテ <span aria-hidden="true">♧</span></p>
 
         <figure class="preview-photo" aria-label="猫と犬の写真">
           <img src="assets/pets-note-photo.png" alt="猫と小型犬がメモ用紙のそばに座っている写真" loading="lazy">
