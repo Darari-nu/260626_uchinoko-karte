@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>うちの子カルテ | 獣医さんに伝える文章生成</title>
-  <meta name="description" content="獣医さんに伝えることを、タップだけで整理して文章にするローカル保存ツール。">
-  <meta name="theme-color" content="#243B53">
+  <title>うちの子カルテ | 獣医さんに伝えることを1分で整理</title>
+  <meta name="description" content="ペットの具合が悪いとき、獣医さんに伝えることをタップだけで整理して自然な受診メモにするローカル保存ツール。">
+  <meta name="theme-color" content="#F8FBF6">
   <meta property="og:type" content="website">
   <meta property="og:title" content="うちの子カルテ">
-  <meta property="og:description" content="獣医さんに伝えることを、タップだけで整理して文章にするシンプルツール。">
+  <meta property="og:description" content="獣医さんに伝えることを、タップだけで1分整理。">
   <meta property="og:site_name" content="うちの子カルテ">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23243B53'/%3E%3Cpath d='M13 17h38v30H13z' fill='%23FFFDF7'/%3E%3Cpath d='M18 24h21M18 32h28M18 40h16' stroke='%23243B53' stroke-width='3'/%3E%3Cpath d='M42 14l8 8' stroke='%23F2B84B' stroke-width='5'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233F8B4B'/%3E%3Cpath d='M16 17h32v34H16z' fill='%23FFFDF8'/%3E%3Cpath d='M22 27h20M22 35h14M22 43h18' stroke='%233F8B4B' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='15' r='4' fill='%23F2C94C'/%3E%3Ccircle cx='40' cy='15' r='4' fill='%23F2C94C'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,37 +19,74 @@
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="#top" aria-label="うちの子カルテ トップへ">
-        <span class="brand-mark" aria-hidden="true">UC</span>
-        <span class="brand-text">うちの子カルテ</span>
-        <span class="brand-sub">Vet Memo</span>
+        <span class="brand-mark" aria-hidden="true">+</span>
+        <span>
+          <span class="brand-text">うちの子カルテ</span>
+          <span class="brand-sub">Vet note in 1 minute</span>
+        </span>
       </a>
       <nav class="header-nav" aria-label="主要メニュー">
         <a href="#questionnaire">入力</a>
-        <a href="#memo-output">文章</a>
+        <a href="#memo-output">メモ</a>
         <a href="#history">履歴</a>
       </nav>
     </div>
   </header>
 
   <main id="top">
-    <section class="hero section-band" aria-labelledby="hero-title">
+    <section class="hero" aria-labelledby="hero-title">
       <div class="hero-inner">
         <div class="hero-copy">
-          <p class="eyebrow">VET MEMO GENERATOR</p>
-          <h1 id="hero-title">うちの子カルテ</h1>
-          <p class="hero-lead">獣医さんに伝えることを、タップだけで整理</p>
+          <p class="eyebrow">ONE-MINUTE VET NOTE</p>
+          <h1 id="hero-title">獣医さんに伝えることを<br>1分で整理</h1>
+          <p class="hero-lead">具合が悪いときほど、うまく説明できない。だから、ぽちぽち選ぶだけで「このまま伝えればOK」な文章にします。</p>
+          <div class="trust-row" aria-label="特徴">
+            <span>診断なし</span>
+            <span>外部送信なし</span>
+            <span>スマホで完結</span>
+          </div>
         </div>
 
-        <section class="card start-card" id="questionnaire" aria-labelledby="questionnaire-title">
+        <div class="hero-visual" aria-hidden="true">
+          <div class="owner-scene">
+            <img src="assets/hero-owner-pet.png" alt="" loading="lazy">
+            <div class="phone-card">
+              <span class="phone-dot"></span>
+              <span class="phone-line wide"></span>
+              <span class="phone-line"></span>
+              <span class="phone-pill">昨日から</span>
+              <span class="phone-pill alert">吐いた</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-shell" aria-label="受診メモ作成">
+      <div class="step-panel">
+        <div class="step-count">
+          <strong id="step-count">0/4</strong>
+          <span id="step-label">情報を入力</span>
+        </div>
+        <ol class="stepper" aria-label="入力ステップ">
+          <li class="step-dot" data-step="startedAt"><span>1</span><small>いつから</small></li>
+          <li class="step-dot" data-step="symptoms"><span>2</span><small>症状</small></li>
+          <li class="step-dot" data-step="frequency"><span>3</span><small>頻度</small></li>
+          <li class="step-dot" data-step="changeAfterVisit"><span>4</span><small>まとめ</small></li>
+        </ol>
+      </div>
+
+      <div class="work-layout">
+        <section class="input-panel" id="questionnaire" aria-labelledby="questionnaire-title">
           <div class="section-heading">
             <p class="eyebrow">TAP TO ORGANIZE</p>
-            <h2 id="questionnaire-title">受診メモを作る</h2>
-            <p class="muted">選ぶたびに下の文章が更新されます。</p>
+            <h2 id="questionnaire-title">気になることを選ぶ</h2>
+            <p class="muted">思い出せるところだけで大丈夫。選ぶたびに文章が更新されます。</p>
           </div>
 
           <form id="memo-form" class="question-form">
             <fieldset class="question-block">
-              <legend>いつから</legend>
+              <legend><span class="legend-icon" aria-hidden="true">01</span>いつから</legend>
               <div class="choice-grid" data-question="startedAt" data-type="single">
                 <button type="button" class="choice-button" data-value="today">今日から</button>
                 <button type="button" class="choice-button" data-value="yesterday">昨日から</button>
@@ -59,19 +96,8 @@
               </div>
             </fieldset>
 
-            <fieldset class="question-block">
-              <legend>どのくらいの頻度</legend>
-              <div class="choice-grid" data-question="frequency" data-type="single">
-                <button type="button" class="choice-button" data-value="once">一度だけ</button>
-                <button type="button" class="choice-button" data-value="sometimes">ときどき</button>
-                <button type="button" class="choice-button" data-value="daily">毎日</button>
-                <button type="button" class="choice-button" data-value="repeated">何度も繰り返す</button>
-                <button type="button" class="choice-button" data-value="gettingWorse">だんだん悪くなっている</button>
-              </div>
-            </fieldset>
-
             <fieldset class="question-block is-attention">
-              <legend>気になる症状</legend>
+              <legend><span class="legend-icon" aria-hidden="true">02</span>気になる症状</legend>
               <div class="choice-grid symptoms-grid" data-question="symptoms" data-type="multiple">
                 <button type="button" class="choice-button" data-value="appetite">食欲がない</button>
                 <button type="button" class="choice-button" data-value="drinksMore">水をよく飲む</button>
@@ -92,7 +118,18 @@
             </fieldset>
 
             <fieldset class="question-block">
-              <legend>前回受診からの変化</legend>
+              <legend><span class="legend-icon" aria-hidden="true">03</span>どのくらいの頻度</legend>
+              <div class="choice-grid" data-question="frequency" data-type="single">
+                <button type="button" class="choice-button" data-value="once">一度だけ</button>
+                <button type="button" class="choice-button" data-value="sometimes">ときどき</button>
+                <button type="button" class="choice-button" data-value="daily">毎日</button>
+                <button type="button" class="choice-button" data-value="repeated">何度も繰り返す</button>
+                <button type="button" class="choice-button" data-value="gettingWorse">だんだん悪くなっている</button>
+              </div>
+            </fieldset>
+
+            <fieldset class="question-block">
+              <legend><span class="legend-icon" aria-hidden="true">04</span>前回受診からの変化</legend>
               <div class="choice-grid" data-question="changeAfterVisit" data-type="single">
                 <button type="button" class="choice-button" data-value="better">良くなった</button>
                 <button type="button" class="choice-button" data-value="same">変わらない</button>
@@ -102,32 +139,33 @@
               </div>
             </fieldset>
 
-            <div class="question-block">
+            <div class="question-block note-block">
               <div class="field">
-                <label for="note">補足</label>
-                <input id="note" name="note" maxlength="120" autocomplete="off" placeholder="例：夜だけ咳が出る">
+                <label for="note"><span class="legend-icon" aria-hidden="true">+</span>補足</label>
+                <input id="note" name="note" maxlength="120" autocomplete="off" placeholder="例：夜だけ咳が出る / 朝ごはんを半分残した">
               </div>
             </div>
           </form>
         </section>
+
+        <aside class="memo-column" aria-label="生成メモ">
+          <section class="memo-card" id="memo-output" aria-labelledby="memo-title">
+            <div class="memo-heading">
+              <p class="eyebrow">READY TO TELL</p>
+              <h2 id="memo-title">このまま伝えればOK</h2>
+            </div>
+            <div id="generated-text" class="generated-text" aria-live="polite"></div>
+            <p class="medical-note">このメモは診断ではなく、受診時に伝えるためのものです。</p>
+            <p id="status-message" class="status-text" role="status">未選択の項目があります。</p>
+            <div class="button-row">
+              <button type="button" id="copy-button" class="button secondary">コピー</button>
+              <button type="button" id="save-button" class="button primary">メモを保存</button>
+            </div>
+          </section>
+        </aside>
       </div>
-    </section>
 
-    <section class="section-inner memo-layout" aria-label="生成文章と履歴">
-      <section class="card memo-card" id="memo-output" aria-labelledby="memo-title">
-        <div class="section-heading">
-          <p class="eyebrow">GENERATED TEXT</p>
-          <h2 id="memo-title">獣医さんに伝える文章</h2>
-        </div>
-        <div id="generated-text" class="generated-text" aria-live="polite"></div>
-        <p id="status-message" class="status-text" role="status">未選択の項目があります。</p>
-        <div class="button-row">
-          <button type="button" id="copy-button" class="button primary">コピー</button>
-          <button type="button" id="save-button" class="button secondary">保存</button>
-        </div>
-      </section>
-
-      <section class="card history-card" id="history" aria-labelledby="history-title">
+      <section class="history-card" id="history" aria-labelledby="history-title">
         <div class="section-heading">
           <p class="eyebrow">RECENT MEMOS</p>
           <h2 id="history-title">過去のメモ</h2>
@@ -139,7 +177,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>うちの子カルテは診断や医療判断を行いません。受診時の説明を助けるための記録ツールです。</p>
+    <p>うちの子カルテは診断や医療判断を行いません。気になる症状がある場合は獣医師に相談してください。</p>
     <p>データはブラウザのlocalStorageに保存され、外部送信・ログイン・メール送信はありません。</p>
   </footer>
 

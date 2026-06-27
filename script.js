@@ -146,6 +146,9 @@ function cacheElements() {
   els.otherSymptomField = document.querySelector("#other-symptom-field");
   els.otherSymptom = document.querySelector("#other-symptom");
   els.note = document.querySelector("#note");
+  els.stepCount = document.querySelector("#step-count");
+  els.stepLabel = document.querySelector("#step-label");
+  els.stepDots = document.querySelectorAll(".step-dot");
 }
 
 function bindChoices() {
@@ -204,6 +207,7 @@ function updateAnswer(question, type, value) {
 function renderAll() {
   renderChoices();
   renderOtherSymptomField();
+  renderProgress();
   renderGeneratedText();
   renderHistory();
 }
@@ -236,12 +240,38 @@ function renderGeneratedText() {
   const text = getGeneratedText();
   clearElement(els.generatedText);
   els.generatedText.classList.toggle("is-empty", !text);
-  els.generatedText.textContent = text || "気になる項目を選ぶと、ここに獣医さんへ伝える文章が表示されます。";
+  els.generatedText.textContent = text || "選んだ内容から、獣医さんにそのまま伝えやすい文章を作ります。";
   if (text) {
     setStatus("文章をコピーまたは保存できます。", "success");
   } else {
     setStatus("未選択の項目があります。", "");
   }
+}
+
+function renderProgress() {
+  const completed = getCompletedSteps();
+  if (els.stepCount) {
+    els.stepCount.textContent = `${completed.length}/4`;
+  }
+  if (els.stepLabel) {
+    els.stepLabel.textContent = completed.length >= 3
+      ? "このまま伝える準備ができています"
+      : "情報を入力";
+  }
+  els.stepDots?.forEach((dot) => {
+    dot.classList.toggle("is-complete", completed.includes(dot.dataset.step));
+  });
+}
+
+function getCompletedSteps() {
+  const completed = [];
+  if (normalizeAnswerValue("startedAt", answers.startedAt)) completed.push("startedAt");
+  if (normalizeAnswerList("symptoms", answers.symptoms).length > 0) completed.push("symptoms");
+  if (normalizeAnswerValue("frequency", answers.frequency)) completed.push("frequency");
+  if (normalizeAnswerValue("changeAfterVisit", answers.changeAfterVisit) || answers.note) {
+    completed.push("changeAfterVisit");
+  }
+  return completed;
 }
 
 function getGeneratedText() {
