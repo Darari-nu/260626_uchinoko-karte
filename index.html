@@ -51,39 +51,39 @@
             <fieldset class="question-block">
               <legend>いつから</legend>
               <div class="choice-grid" data-question="startedAt" data-type="single">
-                <button type="button" class="choice-button" data-value="今日から">今日から</button>
-                <button type="button" class="choice-button" data-value="昨日から">昨日から</button>
-                <button type="button" class="choice-button" data-value="2〜3日前から">2〜3日前から</button>
-                <button type="button" class="choice-button" data-value="1週間以上前から">1週間以上前から</button>
-                <button type="button" class="choice-button" data-value="わからない">わからない</button>
+                <button type="button" class="choice-button" data-value="today">今日から</button>
+                <button type="button" class="choice-button" data-value="yesterday">昨日から</button>
+                <button type="button" class="choice-button" data-value="fewDays">2〜3日前から</button>
+                <button type="button" class="choice-button" data-value="weekPlus">1週間以上前から</button>
+                <button type="button" class="choice-button" data-value="unknown">わからない</button>
               </div>
             </fieldset>
 
             <fieldset class="question-block">
               <legend>どのくらいの頻度</legend>
               <div class="choice-grid" data-question="frequency" data-type="single">
-                <button type="button" class="choice-button" data-value="一度だけ">一度だけ</button>
-                <button type="button" class="choice-button" data-value="ときどき">ときどき</button>
-                <button type="button" class="choice-button" data-value="毎日">毎日</button>
-                <button type="button" class="choice-button" data-value="何度も繰り返す">何度も繰り返す</button>
-                <button type="button" class="choice-button" data-value="だんだん悪くなっている">だんだん悪くなっている</button>
+                <button type="button" class="choice-button" data-value="once">一度だけ</button>
+                <button type="button" class="choice-button" data-value="sometimes">ときどき</button>
+                <button type="button" class="choice-button" data-value="daily">毎日</button>
+                <button type="button" class="choice-button" data-value="repeated">何度も繰り返す</button>
+                <button type="button" class="choice-button" data-value="gettingWorse">だんだん悪くなっている</button>
               </div>
             </fieldset>
 
             <fieldset class="question-block is-attention">
               <legend>気になる症状</legend>
               <div class="choice-grid symptoms-grid" data-question="symptoms" data-type="multiple">
-                <button type="button" class="choice-button" data-value="食欲がない">食欲がない</button>
-                <button type="button" class="choice-button" data-value="水をよく飲む">水をよく飲む</button>
-                <button type="button" class="choice-button" data-value="吐いた">吐いた</button>
-                <button type="button" class="choice-button" data-value="下痢">下痢</button>
-                <button type="button" class="choice-button" data-value="便秘">便秘</button>
-                <button type="button" class="choice-button" data-value="元気がない">元気がない</button>
-                <button type="button" class="choice-button" data-value="咳・くしゃみ">咳・くしゃみ</button>
-                <button type="button" class="choice-button" data-value="かゆがる">かゆがる</button>
-                <button type="button" class="choice-button" data-value="歩き方がおかしい">歩き方がおかしい</button>
-                <button type="button" class="choice-button" data-value="排尿がおかしい">排尿がおかしい</button>
-                <button type="button" class="choice-button" data-value="その他">その他</button>
+                <button type="button" class="choice-button" data-value="appetite">食欲がない</button>
+                <button type="button" class="choice-button" data-value="drinksMore">水をよく飲む</button>
+                <button type="button" class="choice-button" data-value="vomit">吐いた</button>
+                <button type="button" class="choice-button" data-value="diarrhea">下痢</button>
+                <button type="button" class="choice-button" data-value="constipation">便秘</button>
+                <button type="button" class="choice-button" data-value="lowEnergy">元気がない</button>
+                <button type="button" class="choice-button" data-value="coughSneeze">咳・くしゃみ</button>
+                <button type="button" class="choice-button" data-value="itchy">かゆがる</button>
+                <button type="button" class="choice-button" data-value="limp">歩き方がおかしい</button>
+                <button type="button" class="choice-button" data-value="peeIssue">排尿がおかしい</button>
+                <button type="button" class="choice-button" data-value="other">その他</button>
               </div>
               <div class="field other-field" id="other-symptom-field" hidden>
                 <label for="other-symptom">その他の症状</label>
@@ -94,11 +94,11 @@
             <fieldset class="question-block">
               <legend>前回受診からの変化</legend>
               <div class="choice-grid" data-question="changeAfterVisit" data-type="single">
-                <button type="button" class="choice-button" data-value="良くなった">良くなった</button>
-                <button type="button" class="choice-button" data-value="変わらない">変わらない</button>
-                <button type="button" class="choice-button" data-value="悪くなった">悪くなった</button>
-                <button type="button" class="choice-button" data-value="別の症状が出た">別の症状が出た</button>
-                <button type="button" class="choice-button" data-value="前回受診していない / 覚えていない">前回受診していない / 覚えていない</button>
+                <button type="button" class="choice-button" data-value="better">良くなった</button>
+                <button type="button" class="choice-button" data-value="same">変わらない</button>
+                <button type="button" class="choice-button" data-value="worse">悪くなった</button>
+                <button type="button" class="choice-button" data-value="newSymptom">別の症状が出た</button>
+                <button type="button" class="choice-button" data-value="noPrevious">前回受診していない / 覚えていない</button>
               </div>
             </fieldset>
 

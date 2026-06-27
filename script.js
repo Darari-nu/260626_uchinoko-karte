@@ -10,6 +10,122 @@ const answers = {
   note: "",
 };
 
+const COPY_OPTIONS = {
+  startedAt: {
+    today: {
+      label: "今日から",
+      lead: "今日から",
+    },
+    yesterday: {
+      label: "昨日から",
+      lead: "昨日ごろから",
+    },
+    fewDays: {
+      label: "2〜3日前から",
+      lead: "2〜3日前から",
+    },
+    weekPlus: {
+      label: "1週間以上前から",
+      lead: "1週間以上前から",
+    },
+    unknown: {
+      label: "わからない",
+      lead: "いつからかははっきりしませんが",
+    },
+  },
+  frequency: {
+    once: {
+      label: "一度だけ",
+      sentence: "気になる様子は一度だけ見られました。",
+    },
+    sometimes: {
+      label: "ときどき",
+      sentence: "気になる様子はときどき見られます。",
+    },
+    daily: {
+      label: "毎日",
+      sentence: "気になる様子は毎日見られます。",
+    },
+    repeated: {
+      label: "何度も繰り返す",
+      sentence: "同じような様子が何度も繰り返し見られます。",
+    },
+    gettingWorse: {
+      label: "だんだん悪くなっている",
+      sentence: "様子としては、だんだん悪くなっているように見えます。",
+    },
+  },
+  symptoms: {
+    appetite: {
+      label: "食欲がない",
+      noun: "食欲の低下",
+    },
+    drinksMore: {
+      label: "水をよく飲む",
+      noun: "飲水量の増加",
+    },
+    vomit: {
+      label: "吐いた",
+      noun: "嘔吐",
+    },
+    diarrhea: {
+      label: "下痢",
+      noun: "下痢",
+    },
+    constipation: {
+      label: "便秘",
+      noun: "便秘",
+    },
+    lowEnergy: {
+      label: "元気がない",
+      noun: "元気のなさ",
+    },
+    coughSneeze: {
+      label: "咳・くしゃみ",
+      noun: "咳やくしゃみ",
+    },
+    itchy: {
+      label: "かゆがる",
+      noun: "かゆがる様子",
+    },
+    limp: {
+      label: "歩き方がおかしい",
+      noun: "歩き方の違和感",
+    },
+    peeIssue: {
+      label: "排尿がおかしい",
+      noun: "排尿の変化",
+    },
+    other: {
+      label: "その他",
+      noun: "その他の症状",
+    },
+  },
+  changeAfterVisit: {
+    better: {
+      label: "良くなった",
+      sentence: "前回の受診後より、良くなっているように感じます。",
+    },
+    same: {
+      label: "変わらない",
+      sentence: "前回の受診後から、大きくは変わっていないように感じます。",
+    },
+    worse: {
+      label: "悪くなった",
+      sentence: "前回の受診後より、悪くなっているように感じます。",
+    },
+    newSymptom: {
+      label: "別の症状が出た",
+      sentence: "前回の受診後に、別の症状も出ています。",
+    },
+    noPrevious: {
+      label: "前回受診していない / 覚えていない",
+      sentence: "前回受診との比較ははっきりわかりません。",
+      aliases: ["前回受診していない / 覚えていない"],
+    },
+  },
+};
+
 const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -67,18 +183,22 @@ function bindActions() {
 }
 
 function updateAnswer(question, type, value) {
+  const normalizedValue = normalizeAnswerValue(question, value);
   if (type === "multiple") {
-    answers[question] = answers[question].includes(value)
-      ? answers[question].filter((item) => item !== value)
-      : [...answers[question], value];
-    if (value === "その他" && !answers[question].includes("その他")) {
+    const currentValues = normalizeAnswerList(question, answers[question]);
+    answers[question] = currentValues.includes(normalizedValue)
+      ? currentValues.filter((item) => item !== normalizedValue)
+      : [...currentValues, normalizedValue];
+    if (normalizedValue === "other" && !answers[question].includes("other")) {
       answers.otherSymptom = "";
       els.otherSymptom.value = "";
     }
     return;
   }
 
-  answers[question] = answers[question] === value ? "" : value;
+  answers[question] = normalizeAnswerValue(question, answers[question]) === normalizedValue
+    ? ""
+    : normalizedValue;
 }
 
 function renderAll() {
@@ -95,8 +215,8 @@ function renderChoices() {
     groupEl.querySelectorAll(".choice-button").forEach((button) => {
       const value = button.dataset.value;
       const selected = type === "multiple"
-        ? answers[question].includes(value)
-        : answers[question] === value;
+        ? normalizeAnswerList(question, answers[question]).includes(value)
+        : normalizeAnswerValue(question, answers[question]) === value;
       button.setAttribute("aria-pressed", selected ? "true" : "false");
       button.classList.toggle("is-selected", selected);
     });
@@ -104,7 +224,7 @@ function renderChoices() {
 }
 
 function renderOtherSymptomField() {
-  const shouldShow = answers.symptoms.includes("その他");
+  const shouldShow = normalizeAnswerList("symptoms", answers.symptoms).includes("other");
   els.otherSymptomField.hidden = !shouldShow;
   if (!shouldShow) {
     answers.otherSymptom = "";
@@ -126,40 +246,44 @@ function renderGeneratedText() {
 
 function getGeneratedText() {
   const lines = [];
+  const startedAt = getOption("startedAt", answers.startedAt);
+  const frequency = getOption("frequency", answers.frequency);
+  const changeAfterVisit = getOption("changeAfterVisit", answers.changeAfterVisit);
   const symptoms = getSymptomList();
 
-  if (answers.startedAt && symptoms) {
-    lines.push(`${answers.startedAt}、${symptoms}が気になっています。`);
-  } else if (answers.startedAt) {
-    lines.push(`${answers.startedAt}気になる様子があります。`);
+  if (startedAt && symptoms) {
+    lines.push(`${startedAt.lead}、${symptoms}が気になっています。`);
+  } else if (startedAt) {
+    lines.push(`${startedAt.lead}、気になる様子があります。`);
   } else if (symptoms) {
     lines.push(`${symptoms}が気になっています。`);
   }
 
-  if (answers.frequency) {
-    lines.push(`頻度は${answers.frequency}です。`);
+  if (frequency) {
+    lines.push(frequency.sentence);
   }
 
-  if (answers.changeAfterVisit) {
-    lines.push(`前回の受診後は${answers.changeAfterVisit}と感じています。`);
+  if (changeAfterVisit) {
+    lines.push(changeAfterVisit.sentence);
   }
 
   if (answers.note) {
-    lines.push(`補足として、${answers.note}。`);
+    lines.push(formatNoteSentence(answers.note));
   }
 
   return lines.join("\n");
 }
 
 function getSymptomList() {
-  const symptoms = answers.symptoms
-    .filter((symptom) => symptom !== "その他");
-  if (answers.symptoms.includes("その他") && answers.otherSymptom) {
-    symptoms.push(answers.otherSymptom);
-  } else if (answers.symptoms.includes("その他")) {
-    symptoms.push("その他の症状");
-  }
-  return symptoms.join("、");
+  const symptoms = normalizeAnswerList("symptoms", answers.symptoms)
+    .map((symptom) => {
+      if (symptom === "other" && answers.otherSymptom) {
+        return formatOtherSymptomNoun(answers.otherSymptom);
+      }
+      return getOption("symptoms", symptom)?.noun || "";
+    })
+    .filter(Boolean);
+  return joinJapaneseList(symptoms);
 }
 
 async function copyText(text) {
@@ -274,13 +398,14 @@ function createHistoryButton(label, style, onClick) {
 }
 
 function openMemo(memo) {
+  const normalizedAnswers = normalizeAnswers(memo.answers);
   Object.assign(answers, {
-    startedAt: memo.answers?.startedAt || "",
-    frequency: memo.answers?.frequency || "",
-    symptoms: Array.isArray(memo.answers?.symptoms) ? memo.answers.symptoms : [],
-    otherSymptom: memo.answers?.otherSymptom || "",
-    changeAfterVisit: memo.answers?.changeAfterVisit || "",
-    note: memo.answers?.note || "",
+    startedAt: normalizedAnswers.startedAt,
+    frequency: normalizedAnswers.frequency,
+    symptoms: normalizedAnswers.symptoms,
+    otherSymptom: normalizedAnswers.otherSymptom,
+    changeAfterVisit: normalizedAnswers.changeAfterVisit,
+    note: normalizedAnswers.note,
   });
   els.otherSymptom.value = answers.otherSymptom;
   els.note.value = answers.note;
@@ -320,14 +445,72 @@ function writeMemos(memos) {
 }
 
 function cloneAnswers() {
+  const normalizedAnswers = normalizeAnswers(answers);
   return {
-    startedAt: answers.startedAt,
-    frequency: answers.frequency,
-    symptoms: [...answers.symptoms],
-    otherSymptom: answers.otherSymptom,
-    changeAfterVisit: answers.changeAfterVisit,
-    note: answers.note,
+    startedAt: normalizedAnswers.startedAt,
+    frequency: normalizedAnswers.frequency,
+    symptoms: [...normalizedAnswers.symptoms],
+    otherSymptom: normalizedAnswers.otherSymptom,
+    changeAfterVisit: normalizedAnswers.changeAfterVisit,
+    note: normalizedAnswers.note,
   };
+}
+
+function normalizeAnswers(source = {}) {
+  return {
+    startedAt: normalizeAnswerValue("startedAt", source.startedAt || ""),
+    frequency: normalizeAnswerValue("frequency", source.frequency || ""),
+    symptoms: normalizeAnswerList("symptoms", source.symptoms),
+    otherSymptom: String(source.otherSymptom || "").trim(),
+    changeAfterVisit: normalizeAnswerValue("changeAfterVisit", source.changeAfterVisit || ""),
+    note: String(source.note || "").trim(),
+  };
+}
+
+function normalizeAnswerList(question, values) {
+  if (!Array.isArray(values)) return [];
+  return values
+    .map((value) => normalizeAnswerValue(question, value))
+    .filter(Boolean);
+}
+
+function normalizeAnswerValue(question, value) {
+  const options = COPY_OPTIONS[question];
+  if (!options || !value) return value || "";
+  if (options[value]) return value;
+
+  const found = Object.entries(options).find(([, option]) => (
+    option.label === value || option.aliases?.includes(value)
+  ));
+  return found ? found[0] : "";
+}
+
+function getOption(question, value) {
+  const key = normalizeAnswerValue(question, value);
+  return key ? COPY_OPTIONS[question]?.[key] : null;
+}
+
+function joinJapaneseList(items) {
+  if (items.length <= 1) return items[0] || "";
+  if (items.length === 2) return `${items[0]}と${items[1]}`;
+  return items.join("、");
+}
+
+function formatNoteSentence(note) {
+  const cleanNote = String(note || "").trim().replace(/[。.\s]+$/g, "");
+  return cleanNote ? `補足として、${cleanNote}。` : "";
+}
+
+function formatOtherSymptomNoun(value) {
+  const cleanValue = String(value || "").trim().replace(/[。.\s]+$/g, "");
+  if (!cleanValue) return "";
+  if (/(様子|症状|状態|変化|痛み|出血|血便|咳|くしゃみ|嘔吐|下痢|便秘)$/.test(cleanValue)) {
+    return cleanValue;
+  }
+  if (/(する|いる|ある|ない|出る|飲む|歩く|鳴く|震える|残す|痛がる|かゆがる)$/.test(cleanValue)) {
+    return `${cleanValue}様子`;
+  }
+  return cleanValue;
 }
 
 function createId() {
