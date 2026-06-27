@@ -1,0 +1,16 @@
+{
+  "name": "うちの子カルテ",
+  "short_name": "うちの子カルテ",
+  "description": "症状や変化をタップして、動物病院に伝えやすいメモを作るローカル保存ツール。",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#f7f9fc",
+  "icons": [
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
